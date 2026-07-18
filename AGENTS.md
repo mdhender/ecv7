@@ -10,6 +10,11 @@ are building command-line tools for operating and playing the game.
 - Assign every new GitHub issue and pull request to `@mdhender`.
 - While the project is in alpha, commit directly to `main`. Do not create a
   feature branch unless the user explicitly asks for one.
+- Before the final commit and push to upstream, bump the version in
+  `version.go`:
+  - Bump the minor version when adding, updating, or changing a feature.
+  - Bump the patch version when fixing a bug or cleaning up code.
+  - Changes limited to the `docs/` path do not require a version bump.
 
 ## Repository layout
 
