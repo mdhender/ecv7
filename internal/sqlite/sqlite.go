@@ -97,23 +97,47 @@ func CreateTemporary(ctx context.Context) (*DB, error) {
 // creates a database. Databases created by another application and databases
 // newer than this build are rejected.
 func OpenPermanent(ctx context.Context, dir string) (*DB, error) {
-	if err := validateDirectory(dir); err != nil {
+	path, err := permanentPath(dir)
+	if err != nil {
+		return nil, err
+	}
+	return open(ctx, path, zsqlite.OpenReadWrite, true, true)
+}
+
+// OpenPermanentReadOnly opens the existing ec.db in dir without changing it.
+// It validates that the file is an EC database, but neither migrates the
+// database nor rejects schema versions newer than this build.
+func OpenPermanentReadOnly(ctx context.Context, dir string) (*DB, error) {
+	path, err := permanentPath(dir)
+	if err != nil {
 		return nil, err
 	}
 
-	path := filepath.Join(dir, DatabaseName)
-	info, err := os.Stat(path)
+	pool, err := sqlitex.NewPool(path, sqlitex.PoolOptions{
+		Flags:    zsqlite.OpenReadOnly,
+		PoolSize: 1,
+	})
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("%s: %w", path, ErrDatabaseNotFound)
-		}
-		return nil, fmt.Errorf("stat %s: %w", path, err)
+		return nil, fmt.Errorf("open database read-only: %w", err)
 	}
-	if !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("%s: %w", path, ErrDatabaseNotFound)
+	fail := func(err error) (*DB, error) {
+		_ = pool.Close()
+		return nil, err
 	}
 
-	return open(ctx, path, zsqlite.OpenReadWrite, true, true)
+	conn, err := pool.Take(ctx)
+	if err != nil {
+		return fail(fmt.Errorf("open database read-only: %w", err))
+	}
+	got, err := pragmaInt(conn, "application_id")
+	pool.Put(conn)
+	if err != nil {
+		return fail(err)
+	}
+	if int32(got) != applicationID {
+		return fail(fmt.Errorf("%w: application ID is %#x", ErrInvalidDatabase, got))
+	}
+	return &DB{pool: pool}, nil
 }
 
 func open(ctx context.Context, uri string, flags zsqlite.OpenFlags, enableWAL, validateExisting bool) (*DB, error) {
@@ -186,6 +210,25 @@ func validateDirectory(dir string) error {
 	return nil
 }
 
+func permanentPath(dir string) (string, error) {
+	if err := validateDirectory(dir); err != nil {
+		return "", err
+	}
+
+	path := filepath.Join(dir, DatabaseName)
+	info, err := os.Stat(path)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return "", fmt.Errorf("%s: %w", path, ErrDatabaseNotFound)
+		}
+		return "", fmt.Errorf("stat %s: %w", path, err)
+	}
+	if !info.Mode().IsRegular() {
+		return "", fmt.Errorf("%s: %w", path, ErrDatabaseNotFound)
+	}
+	return path, nil
+}
+
 func enableForeignKeys(conn *zsqlite.Conn) error {
 	return sqlitex.ExecuteTransient(conn, "PRAGMA foreign_keys = ON;", nil)
 }
@@ -213,6 +256,16 @@ func (db *DB) Get(ctx context.Context) (*zsqlite.Conn, error) {
 // Put returns a connection obtained with Get.
 func (db *DB) Put(conn *zsqlite.Conn) {
 	db.pool.Put(conn)
+}
+
+// SchemaVersion returns the database's current ZombieZen migration version.
+func (db *DB) SchemaVersion(ctx context.Context) (int, error) {
+	conn, err := db.Get(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("get schema version: %w", err)
+	}
+	defer db.Put(conn)
+	return pragmaInt(conn, "user_version")
 }
 
 // Close closes the database pool. A temporary database is discarded when its

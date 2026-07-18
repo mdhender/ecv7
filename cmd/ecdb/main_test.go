@@ -3,14 +3,17 @@ package main
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/mdhender/ecv7"
 	"github.com/mdhender/ecv7/internal/sqlite"
+	"zombiezen.com/go/sqlite/sqlitex"
 )
 
 func TestCreateDatabase(t *testing.T) {
@@ -45,6 +48,83 @@ func TestCreateDatabaseDoesNotCreatePath(t *testing.T) {
 	}
 	if _, err := os.Stat(missing); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("missing path was created: %v", err)
+	}
+}
+
+func TestDatabaseVersion(t *testing.T) {
+	for _, want := range []int{0, sqlite.ExpectedSchemaVersion, sqlite.ExpectedSchemaVersion + 1} {
+		t.Run(strconv.Itoa(want), func(t *testing.T) {
+			dir := t.TempDir()
+			db, err := sqlite.CreatePermanent(t.Context(), dir)
+			if err != nil {
+				t.Fatalf("CreatePermanent: %v", err)
+			}
+			conn, err := db.Get(t.Context())
+			if err != nil {
+				t.Fatalf("get connection: %v", err)
+			}
+			if err := sqlitex.ExecuteTransient(conn, fmt.Sprintf("PRAGMA user_version = %d;", want), nil); err != nil {
+				t.Fatalf("set schema version: %v", err)
+			}
+			db.Put(conn)
+			if err := db.Close(); err != nil {
+				t.Fatalf("close: %v", err)
+			}
+
+			output, err := captureStdout(t, func() error {
+				return run(t.Context(), []string{"database", "version", "--path", dir}, &bytes.Buffer{})
+			})
+			if err != nil {
+				t.Fatalf("run: %v", err)
+			}
+			if got := strings.TrimSpace(output); got != strconv.Itoa(want) {
+				t.Fatalf("output = %q, want %q", got, strconv.Itoa(want))
+			}
+
+			readOnly, err := sqlite.OpenPermanentReadOnly(t.Context(), dir)
+			if err != nil {
+				t.Fatalf("OpenPermanentReadOnly: %v", err)
+			}
+			got, err := readOnly.SchemaVersion(t.Context())
+			if closeErr := readOnly.Close(); err == nil {
+				err = closeErr
+			}
+			if err != nil || got != want {
+				t.Fatalf("schema version after command = %d, %v; want %d", got, err, want)
+			}
+		})
+	}
+}
+
+func TestDatabaseVersionRequiresPath(t *testing.T) {
+	_, err := captureStdout(t, func() error {
+		return run(t.Context(), []string{"database", "version"}, &bytes.Buffer{})
+	})
+	if err == nil || !strings.Contains(err.Error(), "--path is required") {
+		t.Fatalf("run error = %v, want required path error", err)
+	}
+}
+
+func TestDatabaseVersionRequiresExistingDatabase(t *testing.T) {
+	dir := t.TempDir()
+	_, err := captureStdout(t, func() error {
+		return run(t.Context(), []string{"database", "version", "--path", dir}, &bytes.Buffer{})
+	})
+	if !errors.Is(err, sqlite.ErrDatabaseNotFound) {
+		t.Fatalf("run error = %v, want ErrDatabaseNotFound", err)
+	}
+}
+
+func TestDatabaseVersionRequiresExistingDirectory(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "missing")
+	_, err := captureStdout(t, func() error {
+		return run(t.Context(), []string{"database", "version", "--path", dir}, &bytes.Buffer{})
+	})
+	if !errors.Is(err, sqlite.ErrInvalidDirectory) {
+		t.Fatalf("run error = %v, want ErrInvalidDirectory", err)
+	}
+	if _, err := os.Stat(dir); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("missing directory was created: %v", err)
 	}
 }
 

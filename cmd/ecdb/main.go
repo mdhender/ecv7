@@ -56,7 +56,37 @@ func command() *ff.Command {
 		},
 	}
 
-	database.Subcommands = append(database.Subcommands, create)
+	databaseVersionFlags := ff.NewFlagSet("version").SetParent(databaseFlags)
+	databaseVersionPath := databaseVersionFlags.StringLong("path", "", "directory containing ec.db")
+	databaseVersion := &ff.Command{
+		Name:      "version",
+		Usage:     "ecdb database version --path PATH",
+		ShortHelp: "print the database migration version",
+		Flags:     databaseVersionFlags,
+		Exec: func(ctx context.Context, args []string) error {
+			if len(args) != 0 {
+				return fmt.Errorf("unexpected arguments: %v", args)
+			}
+			if *databaseVersionPath == "" {
+				return errors.New("--path is required")
+			}
+			db, err := sqlite.OpenPermanentReadOnly(ctx, *databaseVersionPath)
+			if err != nil {
+				return err
+			}
+			migrationVersion, err := db.SchemaVersion(ctx)
+			if closeErr := db.Close(); err == nil {
+				err = closeErr
+			}
+			if err != nil {
+				return err
+			}
+			fmt.Println(migrationVersion)
+			return nil
+		},
+	}
+
+	database.Subcommands = append(database.Subcommands, create, databaseVersion)
 
 	versionFlags := ff.NewFlagSet("version").SetParent(rootFlags)
 	build := versionFlags.BoolLong("build", "include pre-release version information")

@@ -117,6 +117,85 @@ func TestOpenPermanentMigratesOlderSchema(t *testing.T) {
 	assertSchema(t, db)
 }
 
+func TestOpenPermanentReadOnlyDoesNotMigrate(t *testing.T) {
+	dir := t.TempDir()
+	createRawDatabase(t, dir, applicationID, 0)
+	beforeJournalMode := rawJournalMode(t, dir)
+
+	db, err := OpenPermanentReadOnly(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("OpenPermanentReadOnly: %v", err)
+	}
+	if got, err := db.SchemaVersion(t.Context()); err != nil || got != 0 {
+		t.Fatalf("SchemaVersion = %d, %v; want 0", got, err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	if got := rawSchemaVersion(t, dir); got != 0 {
+		t.Fatalf("database was migrated to version %d", got)
+	}
+	if got := rawJournalMode(t, dir); got != beforeJournalMode {
+		t.Fatalf("journal mode changed from %q to %q", beforeJournalMode, got)
+	}
+}
+
+func TestOpenPermanentReadOnlyAcceptsNewerSchema(t *testing.T) {
+	dir := t.TempDir()
+	want := ExpectedSchemaVersion + 1
+	createRawDatabase(t, dir, applicationID, want)
+	db, err := OpenPermanentReadOnly(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("OpenPermanentReadOnly: %v", err)
+	}
+	defer db.Close()
+	if got, err := db.SchemaVersion(t.Context()); err != nil || got != want {
+		t.Fatalf("SchemaVersion = %d, %v; want %d", got, err, want)
+	}
+}
+
+func TestOpenPermanentReadOnlyReadsActiveWAL(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, DatabaseName)
+	writer, err := zsqlite.OpenConn(path, zsqlite.OpenReadWrite|zsqlite.OpenCreate)
+	if err != nil {
+		t.Fatalf("create WAL database: %v", err)
+	}
+	defer writer.Close()
+	want := ExpectedSchemaVersion + 1
+	for _, query := range []string{
+		"PRAGMA journal_mode = WAL;",
+		"PRAGMA wal_autocheckpoint = 0;",
+		fmt.Sprintf("PRAGMA application_id = %d;", applicationID),
+		fmt.Sprintf("PRAGMA user_version = %d;", want),
+	} {
+		if err := sqlitex.ExecuteTransient(writer, query, nil); err != nil {
+			t.Fatalf("execute %q: %v", query, err)
+		}
+	}
+	if _, err := os.Stat(path + "-wal"); err != nil {
+		t.Fatalf("stat active WAL: %v", err)
+	}
+
+	db, err := OpenPermanentReadOnly(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("OpenPermanentReadOnly: %v", err)
+	}
+	defer db.Close()
+	if got, err := db.SchemaVersion(t.Context()); err != nil || got != want {
+		t.Fatalf("SchemaVersion = %d, %v; want %d", got, err, want)
+	}
+}
+
+func TestOpenPermanentReadOnlyRejectsWrongApplication(t *testing.T) {
+	dir := t.TempDir()
+	createRawDatabase(t, dir, 0, ExpectedSchemaVersion)
+	if _, err := OpenPermanentReadOnly(t.Context(), dir); !errors.Is(err, ErrInvalidDatabase) {
+		t.Fatalf("OpenPermanentReadOnly error = %v, want ErrInvalidDatabase", err)
+	}
+}
+
 func assertSchema(t *testing.T, db *DB) {
 	t.Helper()
 	conn, err := db.Get(t.Context())
@@ -179,4 +258,18 @@ func rawJournalMode(t *testing.T, dir string) string {
 		t.Fatalf("read journal mode: %v", err)
 	}
 	return mode
+}
+
+func rawSchemaVersion(t *testing.T, dir string) int {
+	t.Helper()
+	conn, err := zsqlite.OpenConn(filepath.Join(dir, DatabaseName), zsqlite.OpenReadOnly)
+	if err != nil {
+		t.Fatalf("open raw database: %v", err)
+	}
+	defer conn.Close()
+	version, err := pragmaInt(conn, "user_version")
+	if err != nil {
+		t.Fatalf("read schema version: %v", err)
+	}
+	return version
 }
