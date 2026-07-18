@@ -1,0 +1,67 @@
+baseURL: "https://ec.pbbgaming.com/docs/"
+title: "EC v7 Documentation"
+
+enableRobotsTXT: true
+disableKinds:
+  - taxonomy
+  - term
+
+module:
+  hugoVersion:
+    extended: true
+    min: "0.146.0"
+  imports:
+    - path: github.com/imfing/hextra
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+  highlight:
+    noClasses: false
+
+menu:
+  main:
+    - name: Tutorials
+      pageRef: /tutorials
+      weight: 1
+    - name: How-To Guides
+      pageRef: /how-to
+      weight: 2
+    - name: References
+      pageRef: /references
+      weight: 3
+    - name: Explanations
+      pageRef: /explanations
+      weight: 4
+    - name: Search
+      weight: 5
+      params:
+        type: search
+    - name: Theme
+      weight: 6
+      params:
+        type: theme-toggle
+
+params:
+  description: "Documentation for EC v7"
+  externalLinkDecoration: true
+
+  navbar:
+    displayTitle: true
+    displayLogo: false
+
+  footer:
+    enable: true
+    displayCopyright: true
+    displayPoweredBy: true
+
+  search:
+    enable: true
+    type: flexsearch
+    flexsearch:
+      index: content
+
+  theme:
+    default: system
+    displayToggle: true

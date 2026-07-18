@@ -1,0 +1,30 @@
+*~
+*.gz
+*.swp
+*.tar
+*.tgz
+*.zip
+
+# OS / editor cruft
+.DS_Store
+
+# Agent and IDE files
+.claude/
+.idea/
+*-prompt.md
+
+# Build files
+/dist/
+/ecdb
+/ecapp
+
+# Environment files (see internal/dotenv). The *.local files may hold secrets, so
+# they are explicity ignored; shared .env and .env.<env> files are committed.
+.env.local
+.env.*.local
+
+# SQLite databases built by `ecdb create` (and their sidecar files). These are
+# disposable build products, rebuilt from data files; the data folders (e.g.
+# data/claude, data/alpha) may still hold committed input files.
+ec.db
+ec.db-*
