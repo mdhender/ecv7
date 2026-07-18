@@ -29,21 +29,21 @@ func command() *ff.Command {
 		Flags:     rootFlags,
 	}
 
-	createFlags := ff.NewFlagSet("create").SetParent(rootFlags)
-	create := &ff.Command{
-		Name:      "create",
-		Usage:     "ecdb create <SUBCOMMAND>",
-		ShortHelp: "create database resources",
-		Flags:     createFlags,
-	}
-
-	databaseFlags := ff.NewFlagSet("database").SetParent(createFlags)
-	path := databaseFlags.StringLong("path", "db", "directory in which to create ec.db")
+	databaseFlags := ff.NewFlagSet("database").SetParent(rootFlags)
 	database := &ff.Command{
 		Name:      "database",
-		Usage:     "ecdb create database [--path PATH]",
-		ShortHelp: "create and migrate a persistent database",
+		Usage:     "ecdb database <SUBCOMMAND>",
+		ShortHelp: "manage the persistent database",
 		Flags:     databaseFlags,
+	}
+
+	createFlags := ff.NewFlagSet("create").SetParent(databaseFlags)
+	path := createFlags.StringLong("path", "db", "directory in which to create ec.db")
+	create := &ff.Command{
+		Name:      "create",
+		Usage:     "ecdb database create [--path PATH]",
+		ShortHelp: "create and migrate a persistent database",
+		Flags:     createFlags,
 		Exec: func(ctx context.Context, args []string) error {
 			if len(args) != 0 {
 				return fmt.Errorf("unexpected arguments: %v", args)
@@ -56,7 +56,7 @@ func command() *ff.Command {
 		},
 	}
 
-	create.Subcommands = append(create.Subcommands, database)
+	database.Subcommands = append(database.Subcommands, create)
 
 	versionFlags := ff.NewFlagSet("version").SetParent(rootFlags)
 	build := versionFlags.BoolLong("build", "include pre-release version information")
@@ -85,7 +85,7 @@ func command() *ff.Command {
 		},
 	}
 
-	root.Subcommands = append(root.Subcommands, create, version)
+	root.Subcommands = append(root.Subcommands, database, version)
 	return root
 }
 

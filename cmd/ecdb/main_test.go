@@ -15,7 +15,7 @@ import (
 
 func TestCreateDatabase(t *testing.T) {
 	dir := t.TempDir()
-	if err := run(t.Context(), []string{"create", "database", "--path", dir}, &bytes.Buffer{}); err != nil {
+	if err := run(t.Context(), []string{"database", "create", "--path", dir}, &bytes.Buffer{}); err != nil {
 		t.Fatalf("run: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(dir, sqlite.DatabaseName)); err != nil {
@@ -28,7 +28,7 @@ func TestCreateDatabaseDefaultPath(t *testing.T) {
 	if err := os.Mkdir("db", 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := run(t.Context(), []string{"create", "database"}, &bytes.Buffer{}); err != nil {
+	if err := run(t.Context(), []string{"database", "create"}, &bytes.Buffer{}); err != nil {
 		t.Fatalf("run: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join("db", sqlite.DatabaseName)); err != nil {
@@ -39,7 +39,7 @@ func TestCreateDatabaseDefaultPath(t *testing.T) {
 func TestCreateDatabaseDoesNotCreatePath(t *testing.T) {
 	parent := t.TempDir()
 	missing := filepath.Join(parent, "missing")
-	err := run(t.Context(), []string{"create", "database", "--path", missing}, &bytes.Buffer{})
+	err := run(t.Context(), []string{"database", "create", "--path", missing}, &bytes.Buffer{})
 	if !errors.Is(err, sqlite.ErrInvalidDirectory) {
 		t.Fatalf("run error = %v, want ErrInvalidDirectory", err)
 	}

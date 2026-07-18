@@ -17,7 +17,7 @@ are building command-line tools for operating and playing the game.
   repository.
 - Keep `version.go` as the only Go source file in the repository root. Put CLI
   entry points under `cmd/<tool>/` and supporting packages under `internal/`.
-- Repository metadata and project directories such as `docs/`, `data/`, and
+- Repository metadata and project directories such as `docs/`, `games/`, and
   configuration files may remain at the root.
 
 ## Command-line and database packages
@@ -34,9 +34,9 @@ are building command-line tools for operating and playing the game.
 - Prefer temporary directories (for example, `t.TempDir()`) for test data.
 - When test data must persist in the repository, keep it in the directory for
   the agent running the test:
-  - Amp: `data/amp/`
-  - Claude: `data/claude/`
-  - Codex: `data/codex/`
-- `data/alpha/` belongs to the user. Do not modify, delete, overwrite, or rely
+  - Amp: `games/amp/`
+  - Claude: `games/claude/`
+  - Codex: `games/codex/`
+- `games/alpha/` belongs to the user. Do not modify, delete, overwrite, or rely
   on its contents in automated tests. Avoid changes that would break the
   user's testing workflow there.
