@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/mdhender/ecv7/internal/cerrs"
 	zsqlite "zombiezen.com/go/sqlite"
@@ -31,11 +33,12 @@ const (
 )
 
 const (
-	ErrDatabaseExists     = cerrs.Error("database already exists")
-	ErrDatabaseNotFound   = cerrs.Error("database not found")
-	ErrInvalidDirectory   = cerrs.Error("invalid database directory")
-	ErrInvalidDatabase    = cerrs.Error("not an EC database")
-	ErrNewerSchemaVersion = cerrs.Error("database schema is newer than this binary")
+	ErrDatabaseExists          = cerrs.Error("database already exists")
+	ErrDatabaseNotFound        = cerrs.Error("database not found")
+	ErrInvalidDirectory        = cerrs.Error("invalid database directory")
+	ErrInvalidDatabase         = cerrs.Error("not an EC database")
+	ErrNewerSchemaVersion      = cerrs.Error("database schema is newer than this binary")
+	ErrUnexpectedSchemaVersion = cerrs.Error("unexpected database schema version")
 )
 
 var schema = sqlitemigration.Schema{
@@ -91,6 +94,55 @@ func CreateTemporary(ctx context.Context) (*DB, error) {
 	}
 	uri := "file:ecv7-" + hex.EncodeToString(id[:]) + "?mode=memory&cache=shared"
 	return open(ctx, uri, zsqlite.OpenReadWrite|zsqlite.OpenURI|zsqlite.OpenSharedCache, false, false)
+}
+
+// BackupPermanent writes a consistent copy of the existing ec.db in dir to
+// outputDir. Both directories and the source database must already exist, and
+// the output file must not exist.
+func BackupPermanent(ctx context.Context, dir, outputDir string, includeVersion bool) (string, error) {
+	return backupPermanent(ctx, dir, outputDir, includeVersion, time.Now())
+}
+
+func backupPermanent(ctx context.Context, dir, outputDir string, includeVersion bool, now time.Time) (outputPath string, err error) {
+	if err := validateDirectory(outputDir); err != nil {
+		return "", err
+	}
+
+	db, err := OpenPermanentReadOnly(ctx, dir)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		if closeErr := db.Close(); err == nil {
+			err = closeErr
+		}
+	}()
+
+	version, err := db.SchemaVersion(ctx)
+	if err != nil {
+		return "", err
+	}
+	if version != ExpectedSchemaVersion {
+		return "", fmt.Errorf("%w: database is version %d, binary expects %d", ErrUnexpectedSchemaVersion, version, ExpectedSchemaVersion)
+	}
+
+	name := DatabaseName + "." + now.UTC().Format("20060102T150405") + "Z"
+	if includeVersion {
+		name += "-" + strconv.Itoa(version)
+	}
+	outputPath = filepath.Join(outputDir, name)
+
+	conn, err := db.Get(ctx)
+	if err != nil {
+		return "", fmt.Errorf("back up database: %w", err)
+	}
+	defer db.Put(conn)
+	if err := sqlitex.ExecuteTransient(conn, "VACUUM INTO ?;", &sqlitex.ExecOptions{
+		Args: []any{outputPath},
+	}); err != nil {
+		return "", fmt.Errorf("back up database to %s: %w", outputPath, err)
+	}
+	return outputPath, nil
 }
 
 // OpenPermanent opens and migrates the existing ec.db in dir. It never

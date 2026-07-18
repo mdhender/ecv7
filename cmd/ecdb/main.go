@@ -56,6 +56,31 @@ func command() *ff.Command {
 		},
 	}
 
+	backupFlags := ff.NewFlagSet("backup").SetParent(databaseFlags)
+	backupPath := backupFlags.StringLong("path", "", "directory containing ec.db")
+	backupOutputPath := backupFlags.StringLong("output-path", "", "directory in which to write the backup")
+	backupVersion := backupFlags.BoolLong("version", "append the database schema version to the backup name")
+	backup := &ff.Command{
+		Name:      "backup",
+		Usage:     "ecdb database backup --path PATH [--output-path OUTPUT_PATH] [--version]",
+		ShortHelp: "write a consistent timestamped database backup",
+		Flags:     backupFlags,
+		Exec: func(ctx context.Context, args []string) error {
+			if len(args) != 0 {
+				return fmt.Errorf("unexpected arguments: %v", args)
+			}
+			if *backupPath == "" {
+				return errors.New("--path is required")
+			}
+			outputPath := *backupOutputPath
+			if outputPath == "" {
+				outputPath = *backupPath
+			}
+			_, err := sqlite.BackupPermanent(ctx, *backupPath, outputPath, *backupVersion)
+			return err
+		},
+	}
+
 	databaseVersionFlags := ff.NewFlagSet("version").SetParent(databaseFlags)
 	databaseVersionPath := databaseVersionFlags.StringLong("path", "", "directory containing ec.db")
 	databaseVersion := &ff.Command{
@@ -86,7 +111,7 @@ func command() *ff.Command {
 		},
 	}
 
-	database.Subcommands = append(database.Subcommands, create, databaseVersion)
+	database.Subcommands = append(database.Subcommands, backup, create, databaseVersion)
 
 	versionFlags := ff.NewFlagSet("version").SetParent(rootFlags)
 	build := versionFlags.BoolLong("build", "include pre-release version information")

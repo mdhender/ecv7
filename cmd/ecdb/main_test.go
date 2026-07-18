@@ -51,6 +51,58 @@ func TestCreateDatabaseDoesNotCreatePath(t *testing.T) {
 	}
 }
 
+func TestBackupDatabase(t *testing.T) {
+	sourceDir := t.TempDir()
+	db, err := sqlite.CreatePermanent(t.Context(), sourceDir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+	outputDir := t.TempDir()
+
+	if err := run(t.Context(), []string{"database", "backup", "--path", sourceDir, "--output-path", outputDir, "--version"}, &bytes.Buffer{}); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	matches, err := filepath.Glob(filepath.Join(outputDir, "ec.db.*Z-"+strconv.Itoa(sqlite.ExpectedSchemaVersion)))
+	if err != nil {
+		t.Fatalf("glob backup: %v", err)
+	}
+	if len(matches) != 1 {
+		t.Fatalf("backup matches = %v, want one versioned backup", matches)
+	}
+}
+
+func TestBackupDatabaseDefaultsOutputPath(t *testing.T) {
+	dir := t.TempDir()
+	db, err := sqlite.CreatePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	if err := run(t.Context(), []string{"database", "backup", "--path", dir}, &bytes.Buffer{}); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	matches, err := filepath.Glob(filepath.Join(dir, "ec.db.*Z"))
+	if err != nil {
+		t.Fatalf("glob backup: %v", err)
+	}
+	if len(matches) != 1 {
+		t.Fatalf("backup matches = %v, want one backup", matches)
+	}
+}
+
+func TestBackupDatabaseRequiresPath(t *testing.T) {
+	err := run(t.Context(), []string{"database", "backup"}, &bytes.Buffer{})
+	if err == nil || !strings.Contains(err.Error(), "--path is required") {
+		t.Fatalf("run error = %v, want required path error", err)
+	}
+}
+
 func TestDatabaseVersion(t *testing.T) {
 	for _, want := range []int{0, sqlite.ExpectedSchemaVersion, sqlite.ExpectedSchemaVersion + 1} {
 		t.Run(strconv.Itoa(want), func(t *testing.T) {

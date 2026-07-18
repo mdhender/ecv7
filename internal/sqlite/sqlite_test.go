@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	zsqlite "zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
@@ -56,6 +57,150 @@ func TestCreateTemporary(t *testing.T) {
 	}
 	defer db.Close()
 	assertSchema(t, db)
+}
+
+func TestBackupPermanent(t *testing.T) {
+	sourceDir := t.TempDir()
+	db, err := CreatePermanent(t.Context(), sourceDir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	conn, err := db.Get(t.Context())
+	if err != nil {
+		t.Fatalf("get connection: %v", err)
+	}
+	if err := sqlitex.ExecuteTransient(conn, "INSERT INTO metadata (key, value) VALUES ('test', 'backup');", nil); err != nil {
+		t.Fatalf("insert metadata: %v", err)
+	}
+	db.Put(conn)
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	outputDir := t.TempDir()
+	stamp := time.Date(2026, 7, 8, 18, 32, 45, 0, time.FixedZone("test", -7*60*60))
+	path, err := backupPermanent(t.Context(), sourceDir, outputDir, false, stamp)
+	if err != nil {
+		t.Fatalf("backupPermanent: %v", err)
+	}
+	wantPath := filepath.Join(outputDir, "ec.db.20260709T013245Z")
+	if path != wantPath {
+		t.Fatalf("backup path = %q, want %q", path, wantPath)
+	}
+	assertBackupMetadata(t, path)
+}
+
+func TestBackupPermanentIncludesVersion(t *testing.T) {
+	sourceDir := t.TempDir()
+	db, err := CreatePermanent(t.Context(), sourceDir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	stamp := time.Date(2026, 7, 8, 18, 32, 45, 0, time.UTC)
+	path, err := backupPermanent(t.Context(), sourceDir, sourceDir, true, stamp)
+	if err != nil {
+		t.Fatalf("backupPermanent: %v", err)
+	}
+	wantPath := filepath.Join(sourceDir, fmt.Sprintf("ec.db.20260708T183245Z-%d", ExpectedSchemaVersion))
+	if path != wantPath {
+		t.Fatalf("backup path = %q, want %q", path, wantPath)
+	}
+}
+
+func TestBackupPermanentRejectsExistingOutput(t *testing.T) {
+	sourceDir := t.TempDir()
+	db, err := CreatePermanent(t.Context(), sourceDir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	stamp := time.Date(2026, 7, 8, 18, 32, 45, 0, time.UTC)
+	path := filepath.Join(sourceDir, "ec.db.20260708T183245Z")
+	const original = "do not overwrite"
+	if err := os.WriteFile(path, []byte(original), 0o600); err != nil {
+		t.Fatalf("create existing output: %v", err)
+	}
+	if _, err := backupPermanent(t.Context(), sourceDir, sourceDir, false, stamp); err == nil {
+		t.Fatal("backupPermanent succeeded with existing output")
+	}
+	got, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read existing output: %v", err)
+	}
+	if string(got) != original {
+		t.Fatalf("existing output = %q, want %q", got, original)
+	}
+}
+
+func TestBackupPermanentValidatesSourceAndOutput(t *testing.T) {
+	stamp := time.Date(2026, 7, 8, 18, 32, 45, 0, time.UTC)
+
+	t.Run("missing source", func(t *testing.T) {
+		if _, err := backupPermanent(t.Context(), t.TempDir(), t.TempDir(), false, stamp); !errors.Is(err, ErrDatabaseNotFound) {
+			t.Fatalf("backupPermanent error = %v, want ErrDatabaseNotFound", err)
+		}
+	})
+
+	t.Run("invalid database", func(t *testing.T) {
+		sourceDir := t.TempDir()
+		createRawDatabase(t, sourceDir, 0, ExpectedSchemaVersion)
+		if _, err := backupPermanent(t.Context(), sourceDir, t.TempDir(), false, stamp); !errors.Is(err, ErrInvalidDatabase) {
+			t.Fatalf("backupPermanent error = %v, want ErrInvalidDatabase", err)
+		}
+	})
+
+	for _, version := range []int{0, ExpectedSchemaVersion + 1} {
+		t.Run(fmt.Sprintf("schema version %d", version), func(t *testing.T) {
+			sourceDir := t.TempDir()
+			createRawDatabase(t, sourceDir, applicationID, version)
+			if _, err := backupPermanent(t.Context(), sourceDir, t.TempDir(), false, stamp); !errors.Is(err, ErrUnexpectedSchemaVersion) {
+				t.Fatalf("backupPermanent error = %v, want ErrUnexpectedSchemaVersion", err)
+			}
+		})
+	}
+
+	t.Run("missing output directory", func(t *testing.T) {
+		sourceDir := t.TempDir()
+		db, err := CreatePermanent(t.Context(), sourceDir)
+		if err != nil {
+			t.Fatalf("CreatePermanent: %v", err)
+		}
+		if err := db.Close(); err != nil {
+			t.Fatalf("close: %v", err)
+		}
+		outputDir := filepath.Join(t.TempDir(), "missing")
+		if _, err := backupPermanent(t.Context(), sourceDir, outputDir, false, stamp); !errors.Is(err, ErrInvalidDirectory) {
+			t.Fatalf("backupPermanent error = %v, want ErrInvalidDirectory", err)
+		}
+		if _, err := os.Stat(outputDir); !errors.Is(err, os.ErrNotExist) {
+			t.Fatalf("output directory was created: %v", err)
+		}
+	})
+
+	t.Run("output path is a file", func(t *testing.T) {
+		sourceDir := t.TempDir()
+		db, err := CreatePermanent(t.Context(), sourceDir)
+		if err != nil {
+			t.Fatalf("CreatePermanent: %v", err)
+		}
+		if err := db.Close(); err != nil {
+			t.Fatalf("close: %v", err)
+		}
+		outputPath := filepath.Join(t.TempDir(), "file")
+		if err := os.WriteFile(outputPath, nil, 0o600); err != nil {
+			t.Fatalf("create output file: %v", err)
+		}
+		if _, err := backupPermanent(t.Context(), sourceDir, outputPath, false, stamp); !errors.Is(err, ErrInvalidDirectory) {
+			t.Fatalf("backupPermanent error = %v, want ErrInvalidDirectory", err)
+		}
+	})
 }
 
 func TestOpenPermanent(t *testing.T) {
@@ -219,6 +364,27 @@ func assertSchema(t *testing.T, db *DB) {
 	})
 	if err != nil || columns != 2 {
 		t.Fatalf("metadata columns = %d, %v; want 2", columns, err)
+	}
+}
+
+func assertBackupMetadata(t *testing.T, path string) {
+	t.Helper()
+	conn, err := zsqlite.OpenConn(path, zsqlite.OpenReadOnly)
+	if err != nil {
+		t.Fatalf("open backup: %v", err)
+	}
+	defer conn.Close()
+	var value string
+	if err := sqlitex.ExecuteTransient(conn, "SELECT value FROM metadata WHERE key = 'test';", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *zsqlite.Stmt) error {
+			value = stmt.ColumnText(0)
+			return nil
+		},
+	}); err != nil {
+		t.Fatalf("read backup metadata: %v", err)
+	}
+	if value != "backup" {
+		t.Fatalf("backup metadata = %q, want %q", value, "backup")
 	}
 }
 
