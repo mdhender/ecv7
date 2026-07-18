@@ -103,6 +103,28 @@ func TestBackupDatabaseRequiresPath(t *testing.T) {
 	}
 }
 
+func TestCompactDatabase(t *testing.T) {
+	dir := t.TempDir()
+	db, err := sqlite.CreatePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	if err := run(t.Context(), []string{"database", "compact", "--path", dir}, &bytes.Buffer{}); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+}
+
+func TestCompactDatabaseRequiresPath(t *testing.T) {
+	err := run(t.Context(), []string{"database", "compact"}, &bytes.Buffer{})
+	if err == nil || !strings.Contains(err.Error(), "--path is required") {
+		t.Fatalf("run error = %v, want required path error", err)
+	}
+}
+
 func TestDatabaseVersion(t *testing.T) {
 	for _, want := range []int{0, sqlite.ExpectedSchemaVersion, sqlite.ExpectedSchemaVersion + 1} {
 		t.Run(strconv.Itoa(want), func(t *testing.T) {

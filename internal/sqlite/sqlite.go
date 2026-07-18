@@ -145,6 +145,39 @@ func backupPermanent(ctx context.Context, dir, outputDir string, includeVersion 
 	return outputPath, nil
 }
 
+// CompactPermanent reclaims unused space in the existing ec.db in dir. The
+// database must have been created by this package and have the schema version
+// supported by this build.
+func CompactPermanent(ctx context.Context, dir string) (err error) {
+	db, err := openPermanentWithoutMigration(ctx, dir, zsqlite.OpenReadWrite, "compact database")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if closeErr := db.Close(); err == nil {
+			err = closeErr
+		}
+	}()
+
+	version, err := db.SchemaVersion(ctx)
+	if err != nil {
+		return err
+	}
+	if version != ExpectedSchemaVersion {
+		return fmt.Errorf("%w: database is version %d, binary expects %d", ErrUnexpectedSchemaVersion, version, ExpectedSchemaVersion)
+	}
+
+	conn, err := db.Get(ctx)
+	if err != nil {
+		return fmt.Errorf("compact database: %w", err)
+	}
+	defer db.Put(conn)
+	if err := sqlitex.ExecuteTransient(conn, "VACUUM;", nil); err != nil {
+		return fmt.Errorf("compact database: %w", err)
+	}
+	return nil
+}
+
 // OpenPermanent opens and migrates the existing ec.db in dir. It never
 // creates a database. Databases created by another application and databases
 // newer than this build are rejected.
@@ -160,17 +193,21 @@ func OpenPermanent(ctx context.Context, dir string) (*DB, error) {
 // It validates that the file is an EC database, but neither migrates the
 // database nor rejects schema versions newer than this build.
 func OpenPermanentReadOnly(ctx context.Context, dir string) (*DB, error) {
+	return openPermanentWithoutMigration(ctx, dir, zsqlite.OpenReadOnly, "open database read-only")
+}
+
+func openPermanentWithoutMigration(ctx context.Context, dir string, flags zsqlite.OpenFlags, operation string) (*DB, error) {
 	path, err := permanentPath(dir)
 	if err != nil {
 		return nil, err
 	}
 
 	pool, err := sqlitex.NewPool(path, sqlitex.PoolOptions{
-		Flags:    zsqlite.OpenReadOnly,
+		Flags:    flags,
 		PoolSize: 1,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("open database read-only: %w", err)
+		return nil, fmt.Errorf("%s: %w", operation, err)
 	}
 	fail := func(err error) (*DB, error) {
 		_ = pool.Close()
@@ -179,7 +216,7 @@ func OpenPermanentReadOnly(ctx context.Context, dir string) (*DB, error) {
 
 	conn, err := pool.Take(ctx)
 	if err != nil {
-		return fail(fmt.Errorf("open database read-only: %w", err))
+		return fail(fmt.Errorf("%s: %w", operation, err))
 	}
 	got, err := pragmaInt(conn, "application_id")
 	pool.Put(conn)

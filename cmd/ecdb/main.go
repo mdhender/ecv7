@@ -81,6 +81,24 @@ func command() *ff.Command {
 		},
 	}
 
+	compactFlags := ff.NewFlagSet("compact").SetParent(databaseFlags)
+	compactPath := compactFlags.StringLong("path", "", "directory containing ec.db")
+	compact := &ff.Command{
+		Name:      "compact",
+		Usage:     "ecdb database compact --path PATH",
+		ShortHelp: "reclaim unused database space",
+		Flags:     compactFlags,
+		Exec: func(ctx context.Context, args []string) error {
+			if len(args) != 0 {
+				return fmt.Errorf("unexpected arguments: %v", args)
+			}
+			if *compactPath == "" {
+				return errors.New("--path is required")
+			}
+			return sqlite.CompactPermanent(ctx, *compactPath)
+		},
+	}
+
 	databaseVersionFlags := ff.NewFlagSet("version").SetParent(databaseFlags)
 	databaseVersionPath := databaseVersionFlags.StringLong("path", "", "directory containing ec.db")
 	databaseVersion := &ff.Command{
@@ -111,7 +129,7 @@ func command() *ff.Command {
 		},
 	}
 
-	database.Subcommands = append(database.Subcommands, backup, create, databaseVersion)
+	database.Subcommands = append(database.Subcommands, backup, compact, create, databaseVersion)
 
 	versionFlags := ff.NewFlagSet("version").SetParent(rootFlags)
 	build := versionFlags.BoolLong("build", "include pre-release version information")

@@ -203,6 +203,79 @@ func TestBackupPermanentValidatesSourceAndOutput(t *testing.T) {
 	})
 }
 
+func TestCompactPermanent(t *testing.T) {
+	dir := t.TempDir()
+	db, err := CreatePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	conn, err := db.Get(t.Context())
+	if err != nil {
+		t.Fatalf("get connection: %v", err)
+	}
+	if err := sqlitex.ExecuteTransient(conn, "CREATE TABLE compact_test (value BLOB);", nil); err != nil {
+		t.Fatalf("create compact test table: %v", err)
+	}
+	for range 256 {
+		if err := sqlitex.ExecuteTransient(conn, "INSERT INTO compact_test (value) VALUES (zeroblob(4096));", nil); err != nil {
+			t.Fatalf("insert compact test row: %v", err)
+		}
+	}
+	if err := sqlitex.ExecuteTransient(conn, "DELETE FROM compact_test;", nil); err != nil {
+		t.Fatalf("delete compact test rows: %v", err)
+	}
+	db.Put(conn)
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+	if before := rawPragmaInt(t, dir, "freelist_count"); before == 0 {
+		t.Fatal("test database has no free pages before compaction")
+	}
+
+	if err := CompactPermanent(t.Context(), dir); err != nil {
+		t.Fatalf("CompactPermanent: %v", err)
+	}
+	if after := rawPragmaInt(t, dir, "freelist_count"); after != 0 {
+		t.Fatalf("freelist_count after compaction = %d, want 0", after)
+	}
+
+	opened, err := OpenPermanentReadOnly(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("OpenPermanentReadOnly: %v", err)
+	}
+	defer opened.Close()
+	assertSchema(t, opened)
+}
+
+func TestCompactPermanentValidatesDatabase(t *testing.T) {
+	t.Run("missing database", func(t *testing.T) {
+		if err := CompactPermanent(t.Context(), t.TempDir()); !errors.Is(err, ErrDatabaseNotFound) {
+			t.Fatalf("CompactPermanent error = %v, want ErrDatabaseNotFound", err)
+		}
+	})
+
+	t.Run("invalid database", func(t *testing.T) {
+		dir := t.TempDir()
+		createRawDatabase(t, dir, 0, ExpectedSchemaVersion)
+		if err := CompactPermanent(t.Context(), dir); !errors.Is(err, ErrInvalidDatabase) {
+			t.Fatalf("CompactPermanent error = %v, want ErrInvalidDatabase", err)
+		}
+	})
+
+	for _, version := range []int{0, ExpectedSchemaVersion + 1} {
+		t.Run(fmt.Sprintf("schema version %d", version), func(t *testing.T) {
+			dir := t.TempDir()
+			createRawDatabase(t, dir, applicationID, version)
+			if err := CompactPermanent(t.Context(), dir); !errors.Is(err, ErrUnexpectedSchemaVersion) {
+				t.Fatalf("CompactPermanent error = %v, want ErrUnexpectedSchemaVersion", err)
+			}
+			if got := rawSchemaVersion(t, dir); got != version {
+				t.Fatalf("schema version after rejection = %d, want %d", got, version)
+			}
+		})
+	}
+}
+
 func TestOpenPermanent(t *testing.T) {
 	dir := t.TempDir()
 	created, err := CreatePermanent(t.Context(), dir)
@@ -427,15 +500,19 @@ func rawJournalMode(t *testing.T, dir string) string {
 }
 
 func rawSchemaVersion(t *testing.T, dir string) int {
+	return rawPragmaInt(t, dir, "user_version")
+}
+
+func rawPragmaInt(t *testing.T, dir, name string) int {
 	t.Helper()
 	conn, err := zsqlite.OpenConn(filepath.Join(dir, DatabaseName), zsqlite.OpenReadOnly)
 	if err != nil {
 		t.Fatalf("open raw database: %v", err)
 	}
 	defer conn.Close()
-	version, err := pragmaInt(conn, "user_version")
+	value, err := pragmaInt(conn, name)
 	if err != nil {
-		t.Fatalf("read schema version: %v", err)
+		t.Fatalf("read %s: %v", name, err)
 	}
-	return version
+	return value
 }
