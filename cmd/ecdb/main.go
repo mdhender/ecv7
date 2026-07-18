@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/mdhender/ecv7"
 	"github.com/mdhender/ecv7/internal/dotenv"
 	"github.com/mdhender/ecv7/internal/sqlite"
 	"github.com/peterbourgon/ff/v4"
@@ -56,7 +57,35 @@ func command() *ff.Command {
 	}
 
 	create.Subcommands = append(create.Subcommands, database)
-	root.Subcommands = append(root.Subcommands, create)
+
+	versionFlags := ff.NewFlagSet("version").SetParent(rootFlags)
+	build := versionFlags.BoolLong("build", "include pre-release version information")
+	long := versionFlags.BoolLong("long", "include pre-release and build version information")
+	version := &ff.Command{
+		Name:      "version",
+		Usage:     "ecdb version [--build | --long]",
+		ShortHelp: "print version information",
+		Flags:     versionFlags,
+		Exec: func(_ context.Context, args []string) error {
+			if len(args) != 0 {
+				return fmt.Errorf("unexpected arguments: %v", args)
+			}
+			if *build && *long {
+				return errors.New("--build and --long are mutually exclusive")
+			}
+			switch {
+			case *build:
+				fmt.Println(ecv7.Version().Short())
+			case *long:
+				fmt.Println(ecv7.Version().String())
+			default:
+				fmt.Println(ecv7.Version().Core())
+			}
+			return nil
+		},
+	}
+
+	root.Subcommands = append(root.Subcommands, create, version)
 	return root
 }
 
