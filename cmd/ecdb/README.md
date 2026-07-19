@@ -107,7 +107,8 @@ and the output directory must already exist. `--output-path` defaults to
 `ec.db.20260719T142530Z-1`.
 
 The source must be an EC database at the schema version expected by this
-build. The command produces no output on success.
+build. On success, the command writes the path of the backup file to standard
+output.
 
 ```sh
 mkdir -p backups
@@ -115,6 +116,7 @@ ecdb database backup \
     --path games/example/db \
     --output-path backups \
     --version
+# backups/ec.db.20260719T142530Z-1
 ```
 
 ### Compact a database
@@ -180,9 +182,10 @@ appropriate.
 - Only `database create` has a default input path (`db`). All other database
   commands require `--path`.
 - `database backup` defaults its output directory to its input path.
-- Application and database `version` commands write their value to standard
-  output. `database upgrade` writes a status line unless `--quiet` is set.
-  Other successful database operations are silent.
+- `database backup` writes the created file's path to standard output.
+  Application and database `version` commands also write their value to
+  standard output. `database upgrade` writes a status line unless `--quiet`
+  is set. Other successful database operations are silent.
 - Command failures return a nonzero exit status and normally write a
   diagnostic to standard error. For `database verify`, `--quiet` suppresses
   the diagnostic while preserving the nonzero status.

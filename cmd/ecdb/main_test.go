@@ -69,7 +69,10 @@ func TestBackupDatabase(t *testing.T) {
 	}
 	outputDir := t.TempDir()
 
-	if err := run(t.Context(), discardLogger, []string{"database", "backup", "--path", sourceDir, "--output-path", outputDir, "--version"}, &bytes.Buffer{}); err != nil {
+	output, err := captureStdout(t, func() error {
+		return run(t.Context(), discardLogger, []string{"database", "backup", "--path", sourceDir, "--output-path", outputDir, "--version"}, &bytes.Buffer{})
+	})
+	if err != nil {
 		t.Fatalf("run: %v", err)
 	}
 	matches, err := filepath.Glob(filepath.Join(outputDir, "ec.db.*Z-"+strconv.Itoa(sqlite.ExpectedSchemaVersion)))
@@ -78,6 +81,9 @@ func TestBackupDatabase(t *testing.T) {
 	}
 	if len(matches) != 1 {
 		t.Fatalf("backup matches = %v, want one versioned backup", matches)
+	}
+	if want := matches[0] + "\n"; output != want {
+		t.Fatalf("output = %q, want %q", output, want)
 	}
 }
 
@@ -91,7 +97,10 @@ func TestBackupDatabaseDefaultsOutputPath(t *testing.T) {
 		t.Fatalf("close: %v", err)
 	}
 
-	if err := run(t.Context(), discardLogger, []string{"database", "backup", "--path", dir}, &bytes.Buffer{}); err != nil {
+	output, err := captureStdout(t, func() error {
+		return run(t.Context(), discardLogger, []string{"database", "backup", "--path", dir}, &bytes.Buffer{})
+	})
+	if err != nil {
 		t.Fatalf("run: %v", err)
 	}
 	matches, err := filepath.Glob(filepath.Join(dir, "ec.db.*Z"))
@@ -100,6 +109,9 @@ func TestBackupDatabaseDefaultsOutputPath(t *testing.T) {
 	}
 	if len(matches) != 1 {
 		t.Fatalf("backup matches = %v, want one backup", matches)
+	}
+	if want := matches[0] + "\n"; output != want {
+		t.Fatalf("output = %q, want %q", output, want)
 	}
 }
 

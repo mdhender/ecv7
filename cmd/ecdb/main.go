@@ -88,8 +88,12 @@ func command(log *slog.Logger, stderr io.Writer) *ff.Command {
 			if outputPath == "" {
 				outputPath = *backupPath
 			}
-			_, err := sqlite.BackupPermanent(ctx, *backupPath, outputPath, *backupVersion)
-			return err
+			createdPath, err := sqlite.BackupPermanent(ctx, *backupPath, outputPath, *backupVersion)
+			if err != nil {
+				return err
+			}
+			fmt.Println(createdPath)
+			return nil
 		},
 	}
 
