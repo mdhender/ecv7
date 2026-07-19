@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
+	"path/filepath"
 
 	"github.com/mdhender/ecv7"
 	"github.com/mdhender/ecv7/internal/dotenv"
@@ -106,6 +108,34 @@ func command(stderr io.Writer) *ff.Command {
 		},
 	}
 
+	migrateFlags := ff.NewFlagSet("migrate").SetParent(databaseFlags)
+	migrate := &ff.Command{
+		Name:      "migrate",
+		Usage:     "ecdb database migrate <SUBCOMMAND>",
+		ShortHelp: "migrate the persistent database",
+		Flags:     migrateFlags,
+	}
+
+	migrateUpFlags := ff.NewFlagSet("up").SetParent(migrateFlags)
+	migrateUpPath := migrateUpFlags.StringLong("path", "", "directory containing ec.db")
+	migrateUpQuiet := migrateUpFlags.BoolLong("quiet", "do not write migration status")
+	migrateUpCommand := &ff.Command{
+		Name:      "up",
+		Usage:     "ecdb database migrate up --path PATH [--quiet]",
+		ShortHelp: "apply missing database migrations",
+		Flags:     migrateUpFlags,
+		Exec: func(ctx context.Context, args []string) error {
+			if len(args) != 0 {
+				return fmt.Errorf("unexpected arguments: %v", args)
+			}
+			if *migrateUpPath == "" {
+				return errors.New("--path is required")
+			}
+			return migrateUp(ctx, slog.Default(), *migrateUpPath, *migrateUpQuiet)
+		},
+	}
+	migrate.Subcommands = append(migrate.Subcommands, migrateUpCommand)
+
 	databaseVersionFlags := ff.NewFlagSet("version").SetParent(databaseFlags)
 	databaseVersionPath := databaseVersionFlags.StringLong("path", "", "directory containing ec.db")
 	databaseVersion := &ff.Command{
@@ -164,7 +194,7 @@ func command(stderr io.Writer) *ff.Command {
 		},
 	}
 
-	database.Subcommands = append(database.Subcommands, backup, compact, create, databaseVersion, verify)
+	database.Subcommands = append(database.Subcommands, backup, compact, create, migrate, databaseVersion, verify)
 
 	versionFlags := ff.NewFlagSet("version").SetParent(rootFlags)
 	build := versionFlags.BoolLong("build", "include pre-release version information")
@@ -195,6 +225,24 @@ func command(stderr io.Writer) *ff.Command {
 
 	root.Subcommands = append(root.Subcommands, database, version)
 	return root
+}
+
+func migrateUp(ctx context.Context, log *slog.Logger, path string, quiet bool) error {
+	dbPath := filepath.Join(path, sqlite.DatabaseName)
+	log.Debug("migration up: starting", "path", dbPath)
+	applied, err := sqlite.MigratePermanent(ctx, path)
+	if err != nil {
+		return err
+	}
+	if quiet {
+		return nil
+	}
+	if !applied {
+		fmt.Printf("no migrations applied to %s (version %d)\n", path, sqlite.ExpectedSchemaVersion)
+		return nil
+	}
+	fmt.Printf("migrations applied to %s (version %d)\n", path, sqlite.ExpectedSchemaVersion)
+	return nil
 }
 
 func run(ctx context.Context, args []string, stderr io.Writer) error {

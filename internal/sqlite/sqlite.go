@@ -189,6 +189,24 @@ func OpenPermanent(ctx context.Context, dir string) (*DB, error) {
 	return open(ctx, path, zsqlite.OpenReadWrite, true, true)
 }
 
+// MigratePermanent applies any missing migrations to the existing ec.db in
+// dir. It reports whether a migration was applied. Databases created by
+// another application and databases newer than this build are rejected.
+func MigratePermanent(ctx context.Context, dir string) (applied bool, err error) {
+	path, err := permanentPath(dir)
+	if err != nil {
+		return false, err
+	}
+	db, applied, err := openAndReportMigration(ctx, path, zsqlite.OpenReadWrite, true, true)
+	if err != nil {
+		return false, err
+	}
+	if err := db.Close(); err != nil {
+		return false, err
+	}
+	return applied, nil
+}
+
 // OpenPermanentReadOnly opens the existing ec.db in dir without changing it.
 // It validates that the file is an EC database, but neither migrates the
 // database nor rejects schema versions newer than this build.
@@ -254,23 +272,28 @@ func openPermanentWithoutMigration(ctx context.Context, dir string, flags zsqlit
 }
 
 func open(ctx context.Context, uri string, flags zsqlite.OpenFlags, enableWAL, validateExisting bool) (*DB, error) {
+	db, _, err := openAndReportMigration(ctx, uri, flags, enableWAL, validateExisting)
+	return db, err
+}
+
+func openAndReportMigration(ctx context.Context, uri string, flags zsqlite.OpenFlags, enableWAL, validateExisting bool) (*DB, bool, error) {
 	pool, err := sqlitex.NewPool(uri, sqlitex.PoolOptions{
 		Flags:       flags,
 		PrepareConn: enableForeignKeys,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("open database: %w", err)
+		return nil, false, fmt.Errorf("open database: %w", err)
 	}
-	fail := func(err error) (*DB, error) {
+	fail := func(err error) (*DB, bool, error) {
 		_ = pool.Close()
-		return nil, err
+		return nil, false, err
 	}
 
 	conn, err := pool.Take(ctx)
 	if err != nil {
 		return fail(fmt.Errorf("open database: %w", err))
 	}
-	failWithConn := func(err error) (*DB, error) {
+	failWithConn := func(err error) (*DB, bool, error) {
 		pool.Put(conn)
 		return fail(err)
 	}
@@ -292,6 +315,7 @@ func open(ctx context.Context, uri string, flags zsqlite.OpenFlags, enableWAL, v
 	if version > ExpectedSchemaVersion {
 		return failWithConn(fmt.Errorf("%w: database is version %d, binary expects %d", ErrNewerSchemaVersion, version, ExpectedSchemaVersion))
 	}
+	applied := version < ExpectedSchemaVersion
 
 	if enableWAL {
 		if err := sqlitex.ExecuteTransient(conn, "PRAGMA journal_mode = WAL;", nil); err != nil {
@@ -309,7 +333,7 @@ func open(ctx context.Context, uri string, flags zsqlite.OpenFlags, enableWAL, v
 		return failWithConn(fmt.Errorf("%w: database is version %d, binary expects %d", ErrNewerSchemaVersion, version, ExpectedSchemaVersion))
 	}
 	pool.Put(conn)
-	return &DB{pool: pool}, nil
+	return &DB{pool: pool}, applied, nil
 }
 
 func validateDirectory(dir string) error {

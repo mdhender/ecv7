@@ -335,6 +335,103 @@ func TestOpenPermanentMigratesOlderSchema(t *testing.T) {
 	assertSchema(t, db)
 }
 
+func TestMigratePermanent(t *testing.T) {
+	dir := t.TempDir()
+	createRawDatabase(t, dir, applicationID, 0)
+
+	applied, err := MigratePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("MigratePermanent: %v", err)
+	}
+	if !applied {
+		t.Fatal("MigratePermanent applied = false, want true")
+	}
+	if got := rawSchemaVersion(t, dir); got != ExpectedSchemaVersion {
+		t.Fatalf("schema version = %d, want %d", got, ExpectedSchemaVersion)
+	}
+
+	applied, err = MigratePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("second MigratePermanent: %v", err)
+	}
+	if applied {
+		t.Fatal("second MigratePermanent applied = true, want false")
+	}
+}
+
+func TestMigratePermanentValidatesDatabase(t *testing.T) {
+	tests := []struct {
+		name    string
+		prepare func(*testing.T) string
+		wantErr error
+	}{
+		{
+			name: "missing directory",
+			prepare: func(t *testing.T) string {
+				return filepath.Join(t.TempDir(), "missing")
+			},
+			wantErr: ErrInvalidDirectory,
+		},
+		{
+			name: "directory is a file",
+			prepare: func(t *testing.T) string {
+				path := filepath.Join(t.TempDir(), "file")
+				if err := os.WriteFile(path, nil, 0o600); err != nil {
+					t.Fatalf("create file: %v", err)
+				}
+				return path
+			},
+			wantErr: ErrInvalidDirectory,
+		},
+		{
+			name:    "missing database",
+			prepare: func(t *testing.T) string { return t.TempDir() },
+			wantErr: ErrDatabaseNotFound,
+		},
+		{
+			name: "database is not a file",
+			prepare: func(t *testing.T) string {
+				dir := t.TempDir()
+				if err := os.Mkdir(filepath.Join(dir, DatabaseName), 0o700); err != nil {
+					t.Fatalf("create database directory: %v", err)
+				}
+				return dir
+			},
+			wantErr: ErrDatabaseNotFound,
+		},
+		{
+			name: "wrong application",
+			prepare: func(t *testing.T) string {
+				dir := t.TempDir()
+				createRawDatabase(t, dir, 0, 0)
+				return dir
+			},
+			wantErr: ErrInvalidDatabase,
+		},
+		{
+			name: "newer schema",
+			prepare: func(t *testing.T) string {
+				dir := t.TempDir()
+				createRawDatabase(t, dir, applicationID, ExpectedSchemaVersion+1)
+				return dir
+			},
+			wantErr: ErrNewerSchemaVersion,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			applied, err := MigratePermanent(t.Context(), tt.prepare(t))
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("MigratePermanent error = %v, want %v", err, tt.wantErr)
+			}
+			if applied {
+				t.Fatal("MigratePermanent applied = true on failure")
+			}
+		})
+	}
+}
+
 func TestOpenPermanentReadOnlyDoesNotMigrate(t *testing.T) {
 	dir := t.TempDir()
 	createRawDatabase(t, dir, applicationID, 0)

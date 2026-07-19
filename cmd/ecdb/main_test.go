@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -122,6 +123,171 @@ func TestCompactDatabaseRequiresPath(t *testing.T) {
 	err := run(t.Context(), []string{"database", "compact"}, &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "--path is required") {
 		t.Fatalf("run error = %v, want required path error", err)
+	}
+}
+
+func TestMigrateUpDatabase(t *testing.T) {
+	dir := t.TempDir()
+	db, err := sqlite.CreatePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	conn, err := db.Get(t.Context())
+	if err != nil {
+		t.Fatalf("get connection: %v", err)
+	}
+	for _, query := range []string{"DROP TABLE metadata;", "PRAGMA user_version = 0;"} {
+		if err := sqlitex.ExecuteTransient(conn, query, nil); err != nil {
+			t.Fatalf("reset schema: %v", err)
+		}
+	}
+	db.Put(conn)
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	output, err := captureStdout(t, func() error {
+		return run(t.Context(), []string{"database", "migrate", "up", "--path", dir}, &bytes.Buffer{})
+	})
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	want := fmt.Sprintf("migrations applied to %s (version %d)\n", dir, sqlite.ExpectedSchemaVersion)
+	if output != want {
+		t.Fatalf("output = %q, want %q", output, want)
+	}
+}
+
+func TestMigrateUpDatabaseCurrentAndQuiet(t *testing.T) {
+	dir := t.TempDir()
+	db, err := sqlite.CreatePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	output, err := captureStdout(t, func() error {
+		return run(t.Context(), []string{"database", "migrate", "up", "--path", dir}, &bytes.Buffer{})
+	})
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	want := fmt.Sprintf("no migrations applied to %s (version %d)\n", dir, sqlite.ExpectedSchemaVersion)
+	if output != want {
+		t.Fatalf("output = %q, want %q", output, want)
+	}
+
+	output, err = captureStdout(t, func() error {
+		return run(t.Context(), []string{"database", "migrate", "up", "--path", dir, "--quiet"}, &bytes.Buffer{})
+	})
+	if err != nil {
+		t.Fatalf("quiet run: %v", err)
+	}
+	if output != "" {
+		t.Fatalf("quiet output = %q, want empty", output)
+	}
+}
+
+func TestMigrateUpDatabaseFailures(t *testing.T) {
+	tests := []struct {
+		name    string
+		prepare func(*testing.T) []string
+		wantErr error
+	}{
+		{
+			name:    "path required",
+			prepare: func(*testing.T) []string { return []string{"database", "migrate", "up"} },
+			wantErr: errors.New("--path is required"),
+		},
+		{
+			name: "missing directory",
+			prepare: func(t *testing.T) []string {
+				return []string{"database", "migrate", "up", "--path", filepath.Join(t.TempDir(), "missing")}
+			},
+			wantErr: sqlite.ErrInvalidDirectory,
+		},
+		{
+			name: "missing database",
+			prepare: func(t *testing.T) []string {
+				return []string{"database", "migrate", "up", "--path", t.TempDir()}
+			},
+			wantErr: sqlite.ErrDatabaseNotFound,
+		},
+		{
+			name: "wrong application",
+			prepare: func(t *testing.T) []string {
+				dir := t.TempDir()
+				conn, err := sqlitex.Open(filepath.Join(dir, sqlite.DatabaseName), 0, 1)
+				if err != nil {
+					t.Fatalf("create raw database: %v", err)
+				}
+				if err := conn.Close(); err != nil {
+					t.Fatalf("close raw database: %v", err)
+				}
+				return []string{"database", "migrate", "up", "--path", dir}
+			},
+			wantErr: sqlite.ErrInvalidDatabase,
+		},
+		{
+			name: "newer schema",
+			prepare: func(t *testing.T) []string {
+				dir := t.TempDir()
+				db, err := sqlite.CreatePermanent(t.Context(), dir)
+				if err != nil {
+					t.Fatalf("CreatePermanent: %v", err)
+				}
+				conn, err := db.Get(t.Context())
+				if err != nil {
+					t.Fatalf("get connection: %v", err)
+				}
+				query := fmt.Sprintf("PRAGMA user_version = %d;", sqlite.ExpectedSchemaVersion+1)
+				if err := sqlitex.ExecuteTransient(conn, query, nil); err != nil {
+					t.Fatalf("set schema version: %v", err)
+				}
+				db.Put(conn)
+				if err := db.Close(); err != nil {
+					t.Fatalf("close: %v", err)
+				}
+				return []string{"database", "migrate", "up", "--path", dir}
+			},
+			wantErr: sqlite.ErrNewerSchemaVersion,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := captureStdout(t, func() error {
+				return run(t.Context(), tt.prepare(t), &bytes.Buffer{})
+			})
+			if tt.name == "path required" {
+				if err == nil || !strings.Contains(err.Error(), tt.wantErr.Error()) {
+					t.Fatalf("run error = %v, want %v", err, tt.wantErr)
+				}
+			} else if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("run error = %v, want %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMigrateUpLogsDatabasePath(t *testing.T) {
+	dir := t.TempDir()
+	db, err := sqlite.CreatePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+	var logs bytes.Buffer
+	log := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	if err := migrateUp(t.Context(), log, dir, true); err != nil {
+		t.Fatalf("migrateUp: %v", err)
+	}
+	if got := logs.String(); !strings.Contains(got, "msg=\"migration up: starting\"") || !strings.Contains(got, "path="+filepath.Join(dir, sqlite.DatabaseName)) {
+		t.Fatalf("log = %q, want start message and database path", got)
 	}
 }
 
