@@ -33,6 +33,7 @@ func (e *quietError) Unwrap() error { return e.err }
 
 func command(log *slog.Logger, stderr io.Writer) *ff.Command {
 	rootFlags := ff.NewFlagSet("ecdb")
+	quiet := rootFlags.BoolLong("quiet", "do not write status output")
 	root := &ff.Command{
 		Name:      "ecdb",
 		Usage:     "ecdb <SUBCOMMAND>",
@@ -110,33 +111,23 @@ func command(log *slog.Logger, stderr io.Writer) *ff.Command {
 		},
 	}
 
-	migrateFlags := ff.NewFlagSet("migrate").SetParent(databaseFlags)
-	migrate := &ff.Command{
-		Name:      "migrate",
-		Usage:     "ecdb database migrate <SUBCOMMAND>",
-		ShortHelp: "migrate the persistent database",
-		Flags:     migrateFlags,
-	}
-
-	migrateUpFlags := ff.NewFlagSet("up").SetParent(migrateFlags)
-	migrateUpPath := migrateUpFlags.StringLong("path", "", "directory containing ec.db")
-	migrateUpQuiet := migrateUpFlags.BoolLong("quiet", "do not write migration status")
-	migrateUpCommand := &ff.Command{
-		Name:      "up",
-		Usage:     "ecdb database migrate up --path PATH [--quiet]",
+	upgradeFlags := ff.NewFlagSet("upgrade").SetParent(databaseFlags)
+	upgradePath := upgradeFlags.StringLong("path", "", "directory containing ec.db")
+	upgrade := &ff.Command{
+		Name:      "upgrade",
+		Usage:     "ecdb database upgrade --path PATH",
 		ShortHelp: "apply missing database migrations",
-		Flags:     migrateUpFlags,
+		Flags:     upgradeFlags,
 		Exec: func(ctx context.Context, args []string) error {
 			if len(args) != 0 {
 				return fmt.Errorf("unexpected arguments: %v", args)
 			}
-			if *migrateUpPath == "" {
+			if *upgradePath == "" {
 				return errors.New("--path is required")
 			}
-			return migrateUp(ctx, log, *migrateUpPath, *migrateUpQuiet)
+			return upgradeDatabase(ctx, log, *upgradePath, *quiet)
 		},
 	}
-	migrate.Subcommands = append(migrate.Subcommands, migrateUpCommand)
 
 	databaseVersionFlags := ff.NewFlagSet("version").SetParent(databaseFlags)
 	databaseVersionPath := databaseVersionFlags.StringLong("path", "", "directory containing ec.db")
@@ -196,7 +187,7 @@ func command(log *slog.Logger, stderr io.Writer) *ff.Command {
 		},
 	}
 
-	database.Subcommands = append(database.Subcommands, backup, compact, create, migrate, databaseVersion, verify)
+	database.Subcommands = append(database.Subcommands, backup, compact, create, upgrade, databaseVersion, verify)
 
 	versionFlags := ff.NewFlagSet("version").SetParent(rootFlags)
 	build := versionFlags.BoolLong("build", "include pre-release version information")
@@ -229,9 +220,9 @@ func command(log *slog.Logger, stderr io.Writer) *ff.Command {
 	return root
 }
 
-func migrateUp(ctx context.Context, log *slog.Logger, path string, quiet bool) error {
+func upgradeDatabase(ctx context.Context, log *slog.Logger, path string, quiet bool) error {
 	dbPath := filepath.Join(path, sqlite.DatabaseName)
-	log.Debug("migration up: starting", "path", dbPath)
+	log.Debug("database upgrade: starting", "path", dbPath)
 	applied, err := sqlite.MigratePermanent(ctx, path)
 	if err != nil {
 		return err

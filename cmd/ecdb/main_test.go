@@ -15,6 +15,7 @@ import (
 
 	"github.com/mdhender/ecv7"
 	"github.com/mdhender/ecv7/internal/sqlite"
+	"github.com/peterbourgon/ff/v4"
 	zsqlite "zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
@@ -130,7 +131,7 @@ func TestCompactDatabaseRequiresPath(t *testing.T) {
 	}
 }
 
-func TestMigrateUpDatabase(t *testing.T) {
+func TestUpgradeDatabase(t *testing.T) {
 	dir := t.TempDir()
 	db, err := sqlite.CreatePermanent(t.Context(), dir)
 	if err != nil {
@@ -151,7 +152,7 @@ func TestMigrateUpDatabase(t *testing.T) {
 	}
 
 	output, err := captureStdout(t, func() error {
-		return run(t.Context(), discardLogger, []string{"database", "migrate", "up", "--path", dir}, &bytes.Buffer{})
+		return run(t.Context(), discardLogger, []string{"database", "upgrade", "--path", dir}, &bytes.Buffer{})
 	})
 	if err != nil {
 		t.Fatalf("run: %v", err)
@@ -162,7 +163,7 @@ func TestMigrateUpDatabase(t *testing.T) {
 	}
 }
 
-func TestMigrateUpDatabaseCurrentAndQuiet(t *testing.T) {
+func TestUpgradeDatabaseCurrentAndQuiet(t *testing.T) {
 	dir := t.TempDir()
 	db, err := sqlite.CreatePermanent(t.Context(), dir)
 	if err != nil {
@@ -173,7 +174,7 @@ func TestMigrateUpDatabaseCurrentAndQuiet(t *testing.T) {
 	}
 
 	output, err := captureStdout(t, func() error {
-		return run(t.Context(), discardLogger, []string{"database", "migrate", "up", "--path", dir}, &bytes.Buffer{})
+		return run(t.Context(), discardLogger, []string{"database", "upgrade", "--path", dir}, &bytes.Buffer{})
 	})
 	if err != nil {
 		t.Fatalf("run: %v", err)
@@ -184,7 +185,7 @@ func TestMigrateUpDatabaseCurrentAndQuiet(t *testing.T) {
 	}
 
 	output, err = captureStdout(t, func() error {
-		return run(t.Context(), discardLogger, []string{"database", "migrate", "up", "--path", dir, "--quiet"}, &bytes.Buffer{})
+		return run(t.Context(), discardLogger, []string{"--quiet", "database", "upgrade", "--path", dir}, &bytes.Buffer{})
 	})
 	if err != nil {
 		t.Fatalf("quiet run: %v", err)
@@ -194,7 +195,7 @@ func TestMigrateUpDatabaseCurrentAndQuiet(t *testing.T) {
 	}
 }
 
-func TestMigrateUpDatabaseFailures(t *testing.T) {
+func TestUpgradeDatabaseFailures(t *testing.T) {
 	tests := []struct {
 		name    string
 		prepare func(*testing.T) []string
@@ -202,20 +203,20 @@ func TestMigrateUpDatabaseFailures(t *testing.T) {
 	}{
 		{
 			name:    "path required",
-			prepare: func(*testing.T) []string { return []string{"database", "migrate", "up"} },
+			prepare: func(*testing.T) []string { return []string{"database", "upgrade"} },
 			wantErr: errors.New("--path is required"),
 		},
 		{
 			name: "missing directory",
 			prepare: func(t *testing.T) []string {
-				return []string{"database", "migrate", "up", "--path", filepath.Join(t.TempDir(), "missing")}
+				return []string{"database", "upgrade", "--path", filepath.Join(t.TempDir(), "missing")}
 			},
 			wantErr: sqlite.ErrInvalidDirectory,
 		},
 		{
 			name: "missing database",
 			prepare: func(t *testing.T) []string {
-				return []string{"database", "migrate", "up", "--path", t.TempDir()}
+				return []string{"database", "upgrade", "--path", t.TempDir()}
 			},
 			wantErr: sqlite.ErrDatabaseNotFound,
 		},
@@ -230,7 +231,7 @@ func TestMigrateUpDatabaseFailures(t *testing.T) {
 				if err := conn.Close(); err != nil {
 					t.Fatalf("close raw database: %v", err)
 				}
-				return []string{"database", "migrate", "up", "--path", dir}
+				return []string{"database", "upgrade", "--path", dir}
 			},
 			wantErr: sqlite.ErrInvalidDatabase,
 		},
@@ -254,7 +255,7 @@ func TestMigrateUpDatabaseFailures(t *testing.T) {
 				if err := db.Close(); err != nil {
 					t.Fatalf("close: %v", err)
 				}
-				return []string{"database", "migrate", "up", "--path", dir}
+				return []string{"database", "upgrade", "--path", dir}
 			},
 			wantErr: sqlite.ErrNewerSchemaVersion,
 		},
@@ -276,7 +277,7 @@ func TestMigrateUpDatabaseFailures(t *testing.T) {
 	}
 }
 
-func TestRunPropagatesLoggerToMigrateUp(t *testing.T) {
+func TestRunPropagatesLoggerToUpgrade(t *testing.T) {
 	dir := t.TempDir()
 	db, err := sqlite.CreatePermanent(t.Context(), dir)
 	if err != nil {
@@ -287,10 +288,10 @@ func TestRunPropagatesLoggerToMigrateUp(t *testing.T) {
 	}
 	var logs bytes.Buffer
 	log := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	if err := run(t.Context(), log, []string{"database", "migrate", "up", "--path", dir, "--quiet"}, &bytes.Buffer{}); err != nil {
+	if err := run(t.Context(), log, []string{"--quiet", "database", "upgrade", "--path", dir}, &bytes.Buffer{}); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got := logs.String(); !strings.Contains(got, "msg=\"migration up: starting\"") || !strings.Contains(got, "path="+filepath.Join(dir, sqlite.DatabaseName)) {
+	if got := logs.String(); !strings.Contains(got, "msg=\"database upgrade: starting\"") || !strings.Contains(got, "path="+filepath.Join(dir, sqlite.DatabaseName)) {
 		t.Fatalf("log = %q, want start message and database path", got)
 	}
 }
@@ -482,6 +483,21 @@ func TestVersionFlagsAreMutuallyExclusive(t *testing.T) {
 	}
 }
 
+func TestDatabaseHelpShowsUpgradeDirectly(t *testing.T) {
+	var stderr bytes.Buffer
+	err := run(t.Context(), discardLogger, []string{"database", "--help"}, &stderr)
+	if !errors.Is(err, ff.ErrHelp) {
+		t.Fatalf("run error = %v, want ErrHelp", err)
+	}
+	help := stderr.String()
+	if !strings.Contains(help, "upgrade   apply missing database migrations") {
+		t.Fatalf("help = %q, want upgrade subcommand", help)
+	}
+	if strings.Contains(help, "migrate   ") {
+		t.Fatalf("help = %q, must not contain migrate subcommand", help)
+	}
+}
+
 func TestCommandErrors(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -493,6 +509,7 @@ func TestCommandErrors(t *testing.T) {
 		{name: "unknown root command", args: []string{"databse", "verify"}, wantErr: `unknown command "databse"`, wantHelp: "ecdb <SUBCOMMAND>"},
 		{name: "missing database command", args: []string{"database"}, wantErr: "database: no command specified", wantHelp: "ecdb database <SUBCOMMAND>"},
 		{name: "unknown database command", args: []string{"database", "varify"}, wantErr: `database: unknown command "varify"`, wantHelp: "ecdb database <SUBCOMMAND>"},
+		{name: "removed migrate command", args: []string{"database", "migrate", "up"}, wantErr: `database: unknown command "migrate"`, wantHelp: "ecdb database <SUBCOMMAND>"},
 	}
 
 	for _, tt := range tests {
