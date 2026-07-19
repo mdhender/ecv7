@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -341,6 +342,60 @@ func TestDatabaseVersion(t *testing.T) {
 	}
 }
 
+func TestDatabaseVersionDoesNotMutateOlderDatabase(t *testing.T) {
+	dir := t.TempDir()
+	db, err := sqlite.CreatePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	conn, err := zsqlite.OpenConn(filepath.Join(dir, sqlite.DatabaseName), zsqlite.OpenReadWrite)
+	if err != nil {
+		t.Fatalf("open older database: %v", err)
+	}
+	for _, query := range []string{
+		"PRAGMA journal_mode = DELETE;",
+		"DROP TABLE metadata;",
+		"PRAGMA user_version = 0;",
+	} {
+		if err := sqlitex.ExecuteTransient(conn, query, nil); err != nil {
+			t.Fatalf("prepare older database with %q: %v", query, err)
+		}
+	}
+	if err := conn.Close(); err != nil {
+		t.Fatalf("close older database: %v", err)
+	}
+
+	before := readLogicalDatabaseState(t, dir)
+	if before.userVersion != 0 || before.journalMode != "delete" || len(before.schemaObjects) != 0 {
+		t.Fatalf("older database state = %+v, want version 0, delete journal, and no schema objects", before)
+	}
+
+	output, err := captureStdout(t, func() error {
+		return run(t.Context(), discardLogger, []string{"database", "version", "--path", dir}, &bytes.Buffer{})
+	})
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if output != "0\n" {
+		t.Fatalf("output = %q, want %q", output, "0\n")
+	}
+
+	after := readLogicalDatabaseState(t, dir)
+	if after.userVersion != before.userVersion {
+		t.Errorf("user_version changed from %d to %d", before.userVersion, after.userVersion)
+	}
+	if after.journalMode != before.journalMode {
+		t.Errorf("journal_mode changed from %q to %q", before.journalMode, after.journalMode)
+	}
+	if !slices.Equal(after.schemaObjects, before.schemaObjects) {
+		t.Errorf("schema objects changed from %q to %q", before.schemaObjects, after.schemaObjects)
+	}
+}
+
 func TestDatabaseVersionRequiresPath(t *testing.T) {
 	_, err := captureStdout(t, func() error {
 		return run(t.Context(), discardLogger, []string{"database", "version"}, &bytes.Buffer{})
@@ -670,6 +725,55 @@ func TestRunPropagatesCanceledContext(t *testing.T) {
 	if code := zsqlite.ErrCode(err); !errors.Is(err, context.Canceled) && code != zsqlite.ResultInterrupt {
 		t.Fatalf("run error = %v (code %v), want context cancellation or SQLite interrupt", err, code)
 	}
+}
+
+type logicalDatabaseState struct {
+	userVersion   int
+	journalMode   string
+	schemaObjects []string
+}
+
+func readLogicalDatabaseState(t *testing.T, dir string) logicalDatabaseState {
+	t.Helper()
+	conn, err := zsqlite.OpenConn(filepath.Join(dir, sqlite.DatabaseName), zsqlite.OpenReadOnly)
+	if err != nil {
+		t.Fatalf("open database for state snapshot: %v", err)
+	}
+	defer conn.Close()
+
+	var state logicalDatabaseState
+	if err := sqlitex.ExecuteTransient(conn, "PRAGMA user_version;", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *zsqlite.Stmt) error {
+			state.userVersion = stmt.ColumnInt(0)
+			return nil
+		},
+	}); err != nil {
+		t.Fatalf("read user_version: %v", err)
+	}
+	if err := sqlitex.ExecuteTransient(conn, "PRAGMA journal_mode;", &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *zsqlite.Stmt) error {
+			state.journalMode = stmt.ColumnText(0)
+			return nil
+		},
+	}); err != nil {
+		t.Fatalf("read journal_mode: %v", err)
+	}
+	if err := sqlitex.ExecuteTransient(conn, `SELECT type || ':' || name || ':' || tbl_name || ':' || coalesce(sql, '')
+FROM sqlite_schema
+WHERE name NOT LIKE 'sqlite_%'
+ORDER BY type, name;`, &sqlitex.ExecOptions{
+		ResultFunc: func(stmt *zsqlite.Stmt) error {
+			state.schemaObjects = append(state.schemaObjects, stmt.ColumnText(0))
+			return nil
+		},
+	}); err != nil {
+		t.Fatalf("read schema objects: %v", err)
+	}
+
+	// WAL and SHM files are SQLite operational sidecars: opening or closing a
+	// connection may create or remove them without changing logical contents.
+	// They are deliberately excluded from this logical database snapshot.
+	return state
 }
 
 func captureStdout(t *testing.T, fn func() error) (string, error) {
