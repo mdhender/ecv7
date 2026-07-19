@@ -11,6 +11,68 @@ ecdb [--quiet] database <SUBCOMMAND>
 
 Use `ecdb --help` or `ecdb database --help` to display command help.
 
+## Environment variables and `.env` files
+
+`ecdb` reads environment variables whose names start with `EC_`. A flag's
+environment variable name is its long name in uppercase, with hyphens replaced
+by underscores. For example:
+
+- `EC_PATH` supplies `--path`.
+- `EC_OUTPUT_PATH` supplies `--output-path`.
+- `EC_QUIET=true` supplies `--quiet`.
+- `EC_VERSION=true`, when running `database backup`, supplies `--version`.
+
+An explicit command-line flag takes precedence over the corresponding
+environment variable. Environment variables only apply to flags available for
+the command being run. Thus, `EC_VERSION` controls `database backup`; it does
+not affect the separate `ecdb version` command.
+
+Before parsing flags, `ecdb` loads dotenv files from the current working
+directory. Set the exported `EC_ENV` variable to select an environment:
+
+```sh
+export EC_ENV=production
+ecdb database verify
+```
+
+The supported values are `development`, `test`, `production`, and `agent`.
+When `EC_ENV` is not exported, it defaults to `development`. Because the
+environment is selected before dotenv files are loaded, put `EC_ENV` in the
+process environment rather than in a dotenv file.
+
+For the selected environment, files are considered in this order, from
+highest to lowest priority:
+
+1. Variables already exported in the process environment.
+2. `.env.<environment>.local`
+3. `.env.local`
+4. `.env.<environment>`
+5. `.env`
+6. Command defaults
+
+Missing dotenv files are ignored. Files with `.local` in their names are
+ignored by Git and may contain local settings or secrets; `.env` and
+`.env.<environment>` are shared files and must not contain secrets.
+
+For example, this `.env.development.local` supplies the database directory for
+development commands:
+
+```dotenv
+EC_PATH=games/example/db
+```
+
+Then the path may be omitted:
+
+```sh
+ecdb database verify
+```
+
+An explicit flag still wins:
+
+```sh
+ecdb database verify --path games/other/db
+```
+
 ## Important limitation of `verify`
 
 **`ecdb database verify` does not verify database contents or database
