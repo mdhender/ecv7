@@ -196,6 +196,30 @@ func OpenPermanentReadOnly(ctx context.Context, dir string) (*DB, error) {
 	return openPermanentWithoutMigration(ctx, dir, zsqlite.OpenReadOnly, "open database read-only")
 }
 
+// VerifyPermanent checks that dir contains an EC database with the schema
+// version supported by this build. It opens the database read-only and does
+// not migrate it.
+func VerifyPermanent(ctx context.Context, dir string) (err error) {
+	db, err := OpenPermanentReadOnly(ctx, dir)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if closeErr := db.Close(); err == nil {
+			err = closeErr
+		}
+	}()
+
+	version, err := db.SchemaVersion(ctx)
+	if err != nil {
+		return err
+	}
+	if version != ExpectedSchemaVersion {
+		return fmt.Errorf("%w: database is version %d, binary expects %d", ErrUnexpectedSchemaVersion, version, ExpectedSchemaVersion)
+	}
+	return nil
+}
+
 func openPermanentWithoutMigration(ctx context.Context, dir string, flags zsqlite.OpenFlags, operation string) (*DB, error) {
 	path, err := permanentPath(dir)
 	if err != nil {

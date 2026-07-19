@@ -414,6 +414,78 @@ func TestOpenPermanentReadOnlyRejectsWrongApplication(t *testing.T) {
 	}
 }
 
+func TestVerifyPermanent(t *testing.T) {
+	dir := t.TempDir()
+	db, err := CreatePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	if err := VerifyPermanent(t.Context(), dir); err != nil {
+		t.Fatalf("VerifyPermanent: %v", err)
+	}
+}
+
+func TestVerifyPermanentRejectsInvalidDatabase(t *testing.T) {
+	tests := []struct {
+		name    string
+		prepare func(*testing.T) string
+		wantErr error
+	}{
+		{
+			name: "missing directory",
+			prepare: func(t *testing.T) string {
+				return filepath.Join(t.TempDir(), "missing")
+			},
+			wantErr: ErrInvalidDirectory,
+		},
+		{
+			name:    "missing database",
+			prepare: func(t *testing.T) string { return t.TempDir() },
+			wantErr: ErrDatabaseNotFound,
+		},
+		{
+			name: "wrong application",
+			prepare: func(t *testing.T) string {
+				dir := t.TempDir()
+				createRawDatabase(t, dir, 0, ExpectedSchemaVersion)
+				return dir
+			},
+			wantErr: ErrInvalidDatabase,
+		},
+		{
+			name: "older schema",
+			prepare: func(t *testing.T) string {
+				dir := t.TempDir()
+				createRawDatabase(t, dir, applicationID, ExpectedSchemaVersion-1)
+				return dir
+			},
+			wantErr: ErrUnexpectedSchemaVersion,
+		},
+		{
+			name: "newer schema",
+			prepare: func(t *testing.T) string {
+				dir := t.TempDir()
+				createRawDatabase(t, dir, applicationID, ExpectedSchemaVersion+1)
+				return dir
+			},
+			wantErr: ErrUnexpectedSchemaVersion,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := tt.prepare(t)
+			if err := VerifyPermanent(t.Context(), dir); !errors.Is(err, tt.wantErr) {
+				t.Fatalf("VerifyPermanent error = %v, want %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func assertSchema(t *testing.T, db *DB) {
 	t.Helper()
 	conn, err := db.Get(t.Context())

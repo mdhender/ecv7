@@ -20,7 +20,14 @@ const (
 	envVarPrefix = "EC"
 )
 
-func command() *ff.Command {
+type quietError struct {
+	err error
+}
+
+func (e *quietError) Error() string { return e.err.Error() }
+func (e *quietError) Unwrap() error { return e.err }
+
+func command(stderr io.Writer) *ff.Command {
 	rootFlags := ff.NewFlagSet("ecdb")
 	root := &ff.Command{
 		Name:      "ecdb",
@@ -129,7 +136,35 @@ func command() *ff.Command {
 		},
 	}
 
-	database.Subcommands = append(database.Subcommands, backup, compact, create, databaseVersion)
+	verifyFlags := ff.NewFlagSet("verify").SetParent(databaseFlags)
+	verifyPath := verifyFlags.StringLong("path", "", "directory containing ec.db")
+	verbose := verifyFlags.BoolLong("verbose", "write verification errors to standard error")
+	verify := &ff.Command{
+		Name:      "verify",
+		Usage:     "ecdb database verify --path PATH [--verbose]",
+		ShortHelp: "verify the database type and migration version",
+		Flags:     verifyFlags,
+		Exec: func(ctx context.Context, args []string) error {
+			var err error
+			switch {
+			case len(args) != 0:
+				err = fmt.Errorf("unexpected arguments: %v", args)
+			case *verifyPath == "":
+				err = errors.New("--path is required")
+			default:
+				err = sqlite.VerifyPermanent(ctx, *verifyPath)
+			}
+			if err == nil {
+				return nil
+			}
+			if *verbose {
+				fmt.Fprintf(stderr, "ecdb: %v\n", err)
+			}
+			return &quietError{err: err}
+		},
+	}
+
+	database.Subcommands = append(database.Subcommands, backup, compact, create, databaseVersion, verify)
 
 	versionFlags := ff.NewFlagSet("version").SetParent(rootFlags)
 	build := versionFlags.BoolLong("build", "include pre-release version information")
@@ -163,7 +198,7 @@ func command() *ff.Command {
 }
 
 func run(ctx context.Context, args []string, stderr io.Writer) error {
-	cmd := command()
+	cmd := command(stderr)
 	if err := cmd.Parse(args, ff.WithEnvVarPrefix(envVarPrefix)); err != nil {
 		fmt.Fprint(stderr, ffhelp.Command(cmd))
 		return err
@@ -188,7 +223,10 @@ func main() {
 		if errors.Is(err, ff.ErrHelp) {
 			return
 		}
-		fmt.Fprintf(os.Stderr, "ecdb: %v\n", err)
+		var quiet *quietError
+		if !errors.As(err, &quiet) {
+			fmt.Fprintf(os.Stderr, "ecdb: %v\n", err)
+		}
 		os.Exit(1)
 	}
 }

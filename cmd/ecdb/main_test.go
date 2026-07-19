@@ -202,6 +202,82 @@ func TestDatabaseVersionRequiresExistingDirectory(t *testing.T) {
 	}
 }
 
+func TestVerifyDatabase(t *testing.T) {
+	dir := t.TempDir()
+	db, err := sqlite.CreatePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	var stderr bytes.Buffer
+	if err := run(t.Context(), []string{"database", "verify", "--path", dir}, &stderr); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want no output", stderr.String())
+	}
+}
+
+func TestVerifyDatabaseFailures(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    func(*testing.T) []string
+		wantErr error
+	}{
+		{
+			name:    "path required",
+			args:    func(*testing.T) []string { return []string{"database", "verify"} },
+			wantErr: errors.New("--path is required"),
+		},
+		{
+			name: "missing directory",
+			args: func(t *testing.T) []string {
+				return []string{"database", "verify", "--path", filepath.Join(t.TempDir(), "missing")}
+			},
+			wantErr: sqlite.ErrInvalidDirectory,
+		},
+		{
+			name: "missing database",
+			args: func(t *testing.T) []string {
+				return []string{"database", "verify", "--path", t.TempDir()}
+			},
+			wantErr: sqlite.ErrDatabaseNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stderr bytes.Buffer
+			err := run(t.Context(), tt.args(t), &stderr)
+			if tt.name == "path required" {
+				if err == nil || !strings.Contains(err.Error(), tt.wantErr.Error()) {
+					t.Fatalf("run error = %v, want %v", err, tt.wantErr)
+				}
+			} else if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("run error = %v, want %v", err, tt.wantErr)
+			}
+			if stderr.Len() != 0 {
+				t.Fatalf("stderr = %q, want no output", stderr.String())
+			}
+		})
+	}
+}
+
+func TestVerifyDatabaseVerboseFailure(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "missing")
+	var stderr bytes.Buffer
+	err := run(t.Context(), []string{"database", "verify", "--path", dir, "--verbose"}, &stderr)
+	if !errors.Is(err, sqlite.ErrInvalidDirectory) {
+		t.Fatalf("run error = %v, want ErrInvalidDirectory", err)
+	}
+	if got := stderr.String(); !strings.Contains(got, sqlite.ErrInvalidDirectory.Error()) || !strings.Contains(got, dir) {
+		t.Fatalf("stderr = %q, want path and invalid-directory error", got)
+	}
+}
+
 func TestVersion(t *testing.T) {
 	tests := []struct {
 		name string
