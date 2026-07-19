@@ -16,7 +16,7 @@
 # Build files
 /dist/
 /ecdb
-/ecapp
+/ec
 
 # Game data
 /games
