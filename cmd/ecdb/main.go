@@ -9,7 +9,9 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 
 	"github.com/mdhender/ecv7"
 	"github.com/mdhender/ecv7/internal/dotenv"
@@ -29,7 +31,7 @@ type quietError struct {
 func (e *quietError) Error() string { return e.err.Error() }
 func (e *quietError) Unwrap() error { return e.err }
 
-func command(stderr io.Writer) *ff.Command {
+func command(log *slog.Logger, stderr io.Writer) *ff.Command {
 	rootFlags := ff.NewFlagSet("ecdb")
 	root := &ff.Command{
 		Name:      "ecdb",
@@ -131,7 +133,7 @@ func command(stderr io.Writer) *ff.Command {
 			if *migrateUpPath == "" {
 				return errors.New("--path is required")
 			}
-			return migrateUp(ctx, slog.Default(), *migrateUpPath, *migrateUpQuiet)
+			return migrateUp(ctx, log, *migrateUpPath, *migrateUpQuiet)
 		},
 	}
 	migrate.Subcommands = append(migrate.Subcommands, migrateUpCommand)
@@ -245,8 +247,8 @@ func migrateUp(ctx context.Context, log *slog.Logger, path string, quiet bool) e
 	return nil
 }
 
-func run(ctx context.Context, args []string, stderr io.Writer) error {
-	cmd := command(stderr)
+func run(ctx context.Context, log *slog.Logger, args []string, stderr io.Writer) error {
+	cmd := command(log, stderr)
 	if err := cmd.Parse(args, ff.WithEnvVarPrefix(envVarPrefix)); err != nil {
 		fmt.Fprint(stderr, ffhelp.Command(cmd.GetSelected()))
 		return err
@@ -279,7 +281,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := run(context.Background(), os.Args[1:], os.Stderr); err != nil {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	if err := run(ctx, log, os.Args[1:], os.Stderr); err != nil {
 		if errors.Is(err, ff.ErrHelp) {
 			return
 		}

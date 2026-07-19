@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -14,12 +15,15 @@ import (
 
 	"github.com/mdhender/ecv7"
 	"github.com/mdhender/ecv7/internal/sqlite"
+	zsqlite "zombiezen.com/go/sqlite"
 	"zombiezen.com/go/sqlite/sqlitex"
 )
 
+var discardLogger = slog.New(slog.NewTextHandler(io.Discard, nil))
+
 func TestCreateDatabase(t *testing.T) {
 	dir := t.TempDir()
-	if err := run(t.Context(), []string{"database", "create", "--path", dir}, &bytes.Buffer{}); err != nil {
+	if err := run(t.Context(), discardLogger, []string{"database", "create", "--path", dir}, &bytes.Buffer{}); err != nil {
 		t.Fatalf("run: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(dir, sqlite.DatabaseName)); err != nil {
@@ -32,7 +36,7 @@ func TestCreateDatabaseDefaultPath(t *testing.T) {
 	if err := os.Mkdir("db", 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := run(t.Context(), []string{"database", "create"}, &bytes.Buffer{}); err != nil {
+	if err := run(t.Context(), discardLogger, []string{"database", "create"}, &bytes.Buffer{}); err != nil {
 		t.Fatalf("run: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join("db", sqlite.DatabaseName)); err != nil {
@@ -43,7 +47,7 @@ func TestCreateDatabaseDefaultPath(t *testing.T) {
 func TestCreateDatabaseDoesNotCreatePath(t *testing.T) {
 	parent := t.TempDir()
 	missing := filepath.Join(parent, "missing")
-	err := run(t.Context(), []string{"database", "create", "--path", missing}, &bytes.Buffer{})
+	err := run(t.Context(), discardLogger, []string{"database", "create", "--path", missing}, &bytes.Buffer{})
 	if !errors.Is(err, sqlite.ErrInvalidDirectory) {
 		t.Fatalf("run error = %v, want ErrInvalidDirectory", err)
 	}
@@ -63,7 +67,7 @@ func TestBackupDatabase(t *testing.T) {
 	}
 	outputDir := t.TempDir()
 
-	if err := run(t.Context(), []string{"database", "backup", "--path", sourceDir, "--output-path", outputDir, "--version"}, &bytes.Buffer{}); err != nil {
+	if err := run(t.Context(), discardLogger, []string{"database", "backup", "--path", sourceDir, "--output-path", outputDir, "--version"}, &bytes.Buffer{}); err != nil {
 		t.Fatalf("run: %v", err)
 	}
 	matches, err := filepath.Glob(filepath.Join(outputDir, "ec.db.*Z-"+strconv.Itoa(sqlite.ExpectedSchemaVersion)))
@@ -85,7 +89,7 @@ func TestBackupDatabaseDefaultsOutputPath(t *testing.T) {
 		t.Fatalf("close: %v", err)
 	}
 
-	if err := run(t.Context(), []string{"database", "backup", "--path", dir}, &bytes.Buffer{}); err != nil {
+	if err := run(t.Context(), discardLogger, []string{"database", "backup", "--path", dir}, &bytes.Buffer{}); err != nil {
 		t.Fatalf("run: %v", err)
 	}
 	matches, err := filepath.Glob(filepath.Join(dir, "ec.db.*Z"))
@@ -98,7 +102,7 @@ func TestBackupDatabaseDefaultsOutputPath(t *testing.T) {
 }
 
 func TestBackupDatabaseRequiresPath(t *testing.T) {
-	err := run(t.Context(), []string{"database", "backup"}, &bytes.Buffer{})
+	err := run(t.Context(), discardLogger, []string{"database", "backup"}, &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "--path is required") {
 		t.Fatalf("run error = %v, want required path error", err)
 	}
@@ -114,13 +118,13 @@ func TestCompactDatabase(t *testing.T) {
 		t.Fatalf("close: %v", err)
 	}
 
-	if err := run(t.Context(), []string{"database", "compact", "--path", dir}, &bytes.Buffer{}); err != nil {
+	if err := run(t.Context(), discardLogger, []string{"database", "compact", "--path", dir}, &bytes.Buffer{}); err != nil {
 		t.Fatalf("run: %v", err)
 	}
 }
 
 func TestCompactDatabaseRequiresPath(t *testing.T) {
-	err := run(t.Context(), []string{"database", "compact"}, &bytes.Buffer{})
+	err := run(t.Context(), discardLogger, []string{"database", "compact"}, &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "--path is required") {
 		t.Fatalf("run error = %v, want required path error", err)
 	}
@@ -147,7 +151,7 @@ func TestMigrateUpDatabase(t *testing.T) {
 	}
 
 	output, err := captureStdout(t, func() error {
-		return run(t.Context(), []string{"database", "migrate", "up", "--path", dir}, &bytes.Buffer{})
+		return run(t.Context(), discardLogger, []string{"database", "migrate", "up", "--path", dir}, &bytes.Buffer{})
 	})
 	if err != nil {
 		t.Fatalf("run: %v", err)
@@ -169,7 +173,7 @@ func TestMigrateUpDatabaseCurrentAndQuiet(t *testing.T) {
 	}
 
 	output, err := captureStdout(t, func() error {
-		return run(t.Context(), []string{"database", "migrate", "up", "--path", dir}, &bytes.Buffer{})
+		return run(t.Context(), discardLogger, []string{"database", "migrate", "up", "--path", dir}, &bytes.Buffer{})
 	})
 	if err != nil {
 		t.Fatalf("run: %v", err)
@@ -180,7 +184,7 @@ func TestMigrateUpDatabaseCurrentAndQuiet(t *testing.T) {
 	}
 
 	output, err = captureStdout(t, func() error {
-		return run(t.Context(), []string{"database", "migrate", "up", "--path", dir, "--quiet"}, &bytes.Buffer{})
+		return run(t.Context(), discardLogger, []string{"database", "migrate", "up", "--path", dir, "--quiet"}, &bytes.Buffer{})
 	})
 	if err != nil {
 		t.Fatalf("quiet run: %v", err)
@@ -259,7 +263,7 @@ func TestMigrateUpDatabaseFailures(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := captureStdout(t, func() error {
-				return run(t.Context(), tt.prepare(t), &bytes.Buffer{})
+				return run(t.Context(), discardLogger, tt.prepare(t), &bytes.Buffer{})
 			})
 			if tt.name == "path required" {
 				if err == nil || !strings.Contains(err.Error(), tt.wantErr.Error()) {
@@ -272,7 +276,7 @@ func TestMigrateUpDatabaseFailures(t *testing.T) {
 	}
 }
 
-func TestMigrateUpLogsDatabasePath(t *testing.T) {
+func TestRunPropagatesLoggerToMigrateUp(t *testing.T) {
 	dir := t.TempDir()
 	db, err := sqlite.CreatePermanent(t.Context(), dir)
 	if err != nil {
@@ -283,8 +287,8 @@ func TestMigrateUpLogsDatabasePath(t *testing.T) {
 	}
 	var logs bytes.Buffer
 	log := slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	if err := migrateUp(t.Context(), log, dir, true); err != nil {
-		t.Fatalf("migrateUp: %v", err)
+	if err := run(t.Context(), log, []string{"database", "migrate", "up", "--path", dir, "--quiet"}, &bytes.Buffer{}); err != nil {
+		t.Fatalf("run: %v", err)
 	}
 	if got := logs.String(); !strings.Contains(got, "msg=\"migration up: starting\"") || !strings.Contains(got, "path="+filepath.Join(dir, sqlite.DatabaseName)) {
 		t.Fatalf("log = %q, want start message and database path", got)
@@ -312,7 +316,7 @@ func TestDatabaseVersion(t *testing.T) {
 			}
 
 			output, err := captureStdout(t, func() error {
-				return run(t.Context(), []string{"database", "version", "--path", dir}, &bytes.Buffer{})
+				return run(t.Context(), discardLogger, []string{"database", "version", "--path", dir}, &bytes.Buffer{})
 			})
 			if err != nil {
 				t.Fatalf("run: %v", err)
@@ -338,7 +342,7 @@ func TestDatabaseVersion(t *testing.T) {
 
 func TestDatabaseVersionRequiresPath(t *testing.T) {
 	_, err := captureStdout(t, func() error {
-		return run(t.Context(), []string{"database", "version"}, &bytes.Buffer{})
+		return run(t.Context(), discardLogger, []string{"database", "version"}, &bytes.Buffer{})
 	})
 	if err == nil || !strings.Contains(err.Error(), "--path is required") {
 		t.Fatalf("run error = %v, want required path error", err)
@@ -348,7 +352,7 @@ func TestDatabaseVersionRequiresPath(t *testing.T) {
 func TestDatabaseVersionRequiresExistingDatabase(t *testing.T) {
 	dir := t.TempDir()
 	_, err := captureStdout(t, func() error {
-		return run(t.Context(), []string{"database", "version", "--path", dir}, &bytes.Buffer{})
+		return run(t.Context(), discardLogger, []string{"database", "version", "--path", dir}, &bytes.Buffer{})
 	})
 	if !errors.Is(err, sqlite.ErrDatabaseNotFound) {
 		t.Fatalf("run error = %v, want ErrDatabaseNotFound", err)
@@ -358,7 +362,7 @@ func TestDatabaseVersionRequiresExistingDatabase(t *testing.T) {
 func TestDatabaseVersionRequiresExistingDirectory(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "missing")
 	_, err := captureStdout(t, func() error {
-		return run(t.Context(), []string{"database", "version", "--path", dir}, &bytes.Buffer{})
+		return run(t.Context(), discardLogger, []string{"database", "version", "--path", dir}, &bytes.Buffer{})
 	})
 	if !errors.Is(err, sqlite.ErrInvalidDirectory) {
 		t.Fatalf("run error = %v, want ErrInvalidDirectory", err)
@@ -379,7 +383,7 @@ func TestVerifyDatabase(t *testing.T) {
 	}
 
 	var stderr bytes.Buffer
-	if err := run(t.Context(), []string{"database", "verify", "--path", dir}, &stderr); err != nil {
+	if err := run(t.Context(), discardLogger, []string{"database", "verify", "--path", dir}, &stderr); err != nil {
 		t.Fatalf("run: %v", err)
 	}
 	if stderr.Len() != 0 {
@@ -417,7 +421,7 @@ func TestVerifyDatabaseFailures(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stderr bytes.Buffer
-			err := run(t.Context(), tt.args(t), &stderr)
+			err := run(t.Context(), discardLogger, tt.args(t), &stderr)
 			if tt.name == "path required" {
 				if err == nil || !strings.Contains(err.Error(), tt.wantErr.Error()) {
 					t.Fatalf("run error = %v, want %v", err, tt.wantErr)
@@ -435,7 +439,7 @@ func TestVerifyDatabaseFailures(t *testing.T) {
 func TestVerifyDatabaseVerboseFailure(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "missing")
 	var stderr bytes.Buffer
-	err := run(t.Context(), []string{"database", "verify", "--path", dir, "--verbose"}, &stderr)
+	err := run(t.Context(), discardLogger, []string{"database", "verify", "--path", dir, "--verbose"}, &stderr)
 	if !errors.Is(err, sqlite.ErrInvalidDirectory) {
 		t.Fatalf("run error = %v, want ErrInvalidDirectory", err)
 	}
@@ -457,7 +461,7 @@ func TestVersion(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			output, err := captureStdout(t, func() error {
-				return run(t.Context(), tt.args, &bytes.Buffer{})
+				return run(t.Context(), discardLogger, tt.args, &bytes.Buffer{})
 			})
 			if err != nil {
 				t.Fatalf("run: %v", err)
@@ -471,7 +475,7 @@ func TestVersion(t *testing.T) {
 
 func TestVersionFlagsAreMutuallyExclusive(t *testing.T) {
 	_, err := captureStdout(t, func() error {
-		return run(t.Context(), []string{"version", "--build", "--long"}, &bytes.Buffer{})
+		return run(t.Context(), discardLogger, []string{"version", "--build", "--long"}, &bytes.Buffer{})
 	})
 	if err == nil || !strings.Contains(err.Error(), "mutually exclusive") {
 		t.Fatalf("run error = %v, want mutually exclusive error", err)
@@ -494,7 +498,7 @@ func TestCommandErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stderr bytes.Buffer
-			err := run(t.Context(), tt.args, &stderr)
+			err := run(t.Context(), discardLogger, tt.args, &stderr)
 			if err == nil || err.Error() != tt.wantErr {
 				t.Fatalf("run error = %v, want %q", err, tt.wantErr)
 			}
@@ -502,6 +506,24 @@ func TestCommandErrors(t *testing.T) {
 				t.Fatalf("stderr = %q, want help containing %q", got, tt.wantHelp)
 			}
 		})
+	}
+}
+
+func TestRunPropagatesCanceledContext(t *testing.T) {
+	dir := t.TempDir()
+	db, err := sqlite.CreatePermanent(t.Context(), dir)
+	if err != nil {
+		t.Fatalf("CreatePermanent: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	err = run(ctx, discardLogger, []string{"database", "verify", "--path", dir}, &bytes.Buffer{})
+	if code := zsqlite.ErrCode(err); !errors.Is(err, context.Canceled) && code != zsqlite.ResultInterrupt {
+		t.Fatalf("run error = %v (code %v), want context cancellation or SQLite interrupt", err, code)
 	}
 }
 
