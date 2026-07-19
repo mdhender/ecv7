@@ -421,8 +421,9 @@ func TestVerifyDatabaseFailures(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			args := tt.args(t)
 			var stderr bytes.Buffer
-			err := run(t.Context(), discardLogger, tt.args(t), &stderr)
+			err := run(t.Context(), discardLogger, args, &stderr)
 			if tt.name == "path required" {
 				if err == nil || !strings.Contains(err.Error(), tt.wantErr.Error()) {
 					t.Fatalf("run error = %v, want %v", err, tt.wantErr)
@@ -430,22 +431,38 @@ func TestVerifyDatabaseFailures(t *testing.T) {
 			} else if !errors.Is(err, tt.wantErr) {
 				t.Fatalf("run error = %v, want %v", err, tt.wantErr)
 			}
-			if stderr.Len() != 0 {
-				t.Fatalf("stderr = %q, want no output", stderr.String())
+			if got := stderr.String(); !strings.Contains(got, tt.wantErr.Error()) {
+				t.Fatalf("stderr = %q, want underlying error %q", got, tt.wantErr)
+			}
+			for i, arg := range args {
+				if arg == "--path" && !strings.Contains(stderr.String(), args[i+1]) {
+					t.Fatalf("stderr = %q, want database path %q", stderr.String(), args[i+1])
+				}
 			}
 		})
 	}
 }
 
-func TestVerifyDatabaseVerboseFailure(t *testing.T) {
-	dir := filepath.Join(t.TempDir(), "missing")
-	var stderr bytes.Buffer
-	err := run(t.Context(), discardLogger, []string{"database", "verify", "--path", dir, "--verbose"}, &stderr)
-	if !errors.Is(err, sqlite.ErrInvalidDirectory) {
-		t.Fatalf("run error = %v, want ErrInvalidDirectory", err)
+func TestVerifyDatabaseQuietFailure(t *testing.T) {
+	tests := [][]string{
+		{"--quiet", "database", "verify", "--path", ""},
+		{"database", "verify", "--path", "", "--quiet"},
 	}
-	if got := stderr.String(); !strings.Contains(got, sqlite.ErrInvalidDirectory.Error()) || !strings.Contains(got, dir) {
-		t.Fatalf("stderr = %q, want path and invalid-directory error", got)
+	for _, args := range tests {
+		dir := filepath.Join(t.TempDir(), "missing")
+		for i, arg := range args {
+			if arg == "--path" {
+				args[i+1] = dir
+			}
+		}
+		var stderr bytes.Buffer
+		err := run(t.Context(), discardLogger, args, &stderr)
+		if !errors.Is(err, sqlite.ErrInvalidDirectory) {
+			t.Fatalf("run(%v) error = %v, want ErrInvalidDirectory", args, err)
+		}
+		if stderr.Len() != 0 {
+			t.Fatalf("run(%v) stderr = %q, want no output", args, stderr.String())
+		}
 	}
 }
 
@@ -495,6 +512,29 @@ func TestDatabaseHelpShowsUpgradeDirectly(t *testing.T) {
 	}
 	if strings.Contains(help, "migrate   ") {
 		t.Fatalf("help = %q, must not contain migrate subcommand", help)
+	}
+}
+
+func TestQuietHelpAndRemovedVerboseFlag(t *testing.T) {
+	for _, args := range [][]string{{"--help"}, {"database", "verify", "--help"}} {
+		var stderr bytes.Buffer
+		err := run(t.Context(), discardLogger, args, &stderr)
+		if !errors.Is(err, ff.ErrHelp) {
+			t.Fatalf("run(%v) error = %v, want ErrHelp", args, err)
+		}
+		help := stderr.String()
+		if !strings.Contains(help, "--quiet") {
+			t.Fatalf("run(%v) help = %q, want quiet flag", args, help)
+		}
+		if strings.Contains(help, "--verbose") {
+			t.Fatalf("run(%v) help = %q, must not contain verbose flag", args, help)
+		}
+	}
+
+	var stderr bytes.Buffer
+	err := run(t.Context(), discardLogger, []string{"database", "verify", "--path", t.TempDir(), "--verbose"}, &stderr)
+	if err == nil {
+		t.Fatal("run with --verbose succeeded, want parse error")
 	}
 }
 

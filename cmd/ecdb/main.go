@@ -33,7 +33,7 @@ func (e *quietError) Unwrap() error { return e.err }
 
 func command(log *slog.Logger, stderr io.Writer) *ff.Command {
 	rootFlags := ff.NewFlagSet("ecdb")
-	quiet := rootFlags.BoolLong("quiet", "do not write status output")
+	quiet := rootFlags.BoolLong("quiet", "suppress status and diagnostic output")
 	root := &ff.Command{
 		Name:      "ecdb",
 		Usage:     "ecdb <SUBCOMMAND>",
@@ -161,10 +161,9 @@ func command(log *slog.Logger, stderr io.Writer) *ff.Command {
 
 	verifyFlags := ff.NewFlagSet("verify").SetParent(databaseFlags)
 	verifyPath := verifyFlags.StringLong("path", "", "directory containing ec.db")
-	verbose := verifyFlags.BoolLong("verbose", "write verification errors to standard error")
 	verify := &ff.Command{
 		Name:      "verify",
-		Usage:     "ecdb database verify --path PATH [--verbose]",
+		Usage:     "ecdb database verify --path PATH",
 		ShortHelp: "verify the database type and migration version",
 		Flags:     verifyFlags,
 		Exec: func(ctx context.Context, args []string) error {
@@ -180,8 +179,12 @@ func command(log *slog.Logger, stderr io.Writer) *ff.Command {
 			if err == nil {
 				return nil
 			}
-			if *verbose {
-				fmt.Fprintf(stderr, "ecdb: %v\n", err)
+			if !*quiet {
+				if *verifyPath == "" {
+					fmt.Fprintf(stderr, "ecdb: %v\n", err)
+				} else {
+					fmt.Fprintf(stderr, "ecdb: verify %s: %v\n", *verifyPath, err)
+				}
 			}
 			return &quietError{err: err}
 		},
