@@ -478,6 +478,33 @@ func TestVersionFlagsAreMutuallyExclusive(t *testing.T) {
 	}
 }
 
+func TestCommandErrors(t *testing.T) {
+	tests := []struct {
+		name     string
+		args     []string
+		wantErr  string
+		wantHelp string
+	}{
+		{name: "missing root command", wantErr: "no command specified", wantHelp: "ecdb <SUBCOMMAND>"},
+		{name: "unknown root command", args: []string{"databse", "verify"}, wantErr: `unknown command "databse"`, wantHelp: "ecdb <SUBCOMMAND>"},
+		{name: "missing database command", args: []string{"database"}, wantErr: "database: no command specified", wantHelp: "ecdb database <SUBCOMMAND>"},
+		{name: "unknown database command", args: []string{"database", "varify"}, wantErr: `database: unknown command "varify"`, wantHelp: "ecdb database <SUBCOMMAND>"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stderr bytes.Buffer
+			err := run(t.Context(), tt.args, &stderr)
+			if err == nil || err.Error() != tt.wantErr {
+				t.Fatalf("run error = %v, want %q", err, tt.wantErr)
+			}
+			if got := stderr.String(); !strings.Contains(got, tt.wantHelp) {
+				t.Fatalf("stderr = %q, want help containing %q", got, tt.wantHelp)
+			}
+		})
+	}
+}
+
 func captureStdout(t *testing.T, fn func() error) (string, error) {
 	t.Helper()
 	original := os.Stdout

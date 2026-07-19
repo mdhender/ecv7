@@ -248,8 +248,20 @@ func migrateUp(ctx context.Context, log *slog.Logger, path string, quiet bool) e
 func run(ctx context.Context, args []string, stderr io.Writer) error {
 	cmd := command(stderr)
 	if err := cmd.Parse(args, ff.WithEnvVarPrefix(envVarPrefix)); err != nil {
-		fmt.Fprint(stderr, ffhelp.Command(cmd))
+		fmt.Fprint(stderr, ffhelp.Command(cmd.GetSelected()))
 		return err
+	}
+	selected := cmd.GetSelected()
+	if selected.Exec == nil && len(selected.Subcommands) != 0 {
+		fmt.Fprint(stderr, ffhelp.Command(selected))
+		prefix := ""
+		if selected != cmd {
+			prefix = selected.Name + ": "
+		}
+		if args := selected.Flags.GetArgs(); len(args) != 0 {
+			return fmt.Errorf("%sunknown command %q", prefix, args[0])
+		}
+		return fmt.Errorf("%sno command specified", prefix)
 	}
 	if err := cmd.Run(ctx); err != nil {
 		return err
