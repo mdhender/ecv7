@@ -38,7 +38,8 @@ first vertical slice:
 
 Prefer these defaults unless investigation reveals a rule conflict:
 
-- Use typed integer identifiers internally.
+- Use immutable domain keys inside generators and the engine, and separate
+  typed integer Store IDs at persistence and player-facing boundaries.
 - Use scaled integers rather than binary floating point for exact game values.
 - Represent a unit as a structured `UnitSpec` containing a code and Tech Level,
   rather than treating `FACT-3` as an opaque string.
@@ -100,8 +101,9 @@ func CanEstablishColony(faction Faction, planet Planet, kind ColonyType) error
 ```
 
 Domain objects must not save themselves, contain SQLite row details, or hold
-database connections. Persistence should translate between records and domain
-state.
+database connections. Persistence should translate between the domain keys and
+Store IDs defined in [the identity decision](ec-identifiers.md), records, and
+domain state.
 
 ## Phase 3: Prove the model with one vertical engine slice
 
