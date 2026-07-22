@@ -8,6 +8,13 @@ The single, reconciled reference for Epimethean Challenge (EC). It consolidates
 the taxonomy, unit list, mass/volume tables, transport rules, combat phases,
 turn-processing sequence, and order syntax into one authoritative source.
 
+This reference records the **facts** of the game — its structure, taxonomy,
+units, and fixed tables — so that a solid model can be built on them. Behavioral
+**game rules** that operate on those facts (transfer mechanics, production
+output rates, population dynamics, wages) are defined separately once the model
+is well defined; until then they are listed in
+[§12]({{< ref "#12-areas-not-yet-specified" >}}).
+
 ---
 
 ## 1. Universe Structure
@@ -26,13 +33,25 @@ The entirety of accessible, explorable space. Contains exactly 100 Stellium.
 
 ### 1.2 Stellium
 A gravitationally associated group of Systems. Contains between 1 and 6 Systems.
+Every Stellium has a unique integer identifier and `(x, y, z)` map coordinates,
+where x, y, and z are integers from -15 to 15 and the origin `(0, 0, 0)` is the
+center of the Cluster. A Stellium is identified by its integer ID, not its
+coordinates; the coordinates are displayed in reports (see
+[§1.5]({{< ref "#15-identity-and-coordinate-display" >}})).
 
 ### 1.3 System
 A star and its orbiting Planets. Contains between 1 and 10 Planets. A System is
 the Home System of any Faction whose Home Planet orbits it.
 
+Systems within a Stellium are ordered by a sequence letter (`seq_no`), starting
+at `A` and progressing to `B`, `C`, `D`, and so on. Every System has a unique
+integer identifier; reports display its coordinates as `(x, y, z, seq)` — its
+Stellium's coordinates plus the sequence letter.
+
 ### 1.4 Planet
 A body orbiting a System's star. Every Planet has a **Type** and **Resources**.
+Every Planet has a unique integer identifier; reports display its coordinates
+as `(x, y, z, seq, orbit)`.
 
 #### Planet Types
 | Type              | Notes                                 |
@@ -46,6 +65,20 @@ A body orbiting a System's star. Every Planet has a **Type** and **Resources**.
 |------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | **Habitability** | Integer 0–25. Limits the number of FARM-1 units installable on the planet's surface.                                              |
 | **Deposits**     | A collection of Natural Resource deposits, each with a Quantity and Yield Percentage. Located by survey, extracted by MINE units. |
+
+### 1.5 Identity and Coordinate Display
+
+Stellium, Systems, and Planets are identified by their unique integer IDs, not
+by their coordinates. Coordinates are a display form used in reports:
+
+| Object   | Identified by | Displayed as          |
+|----------|---------------|-----------------------|
+| Stellium | integer ID    | `(x, y, z)`           |
+| System   | integer ID    | `(x, y, z, seq)`      |
+| Planet   | integer ID    | `(x, y, z, seq, orbit)` |
+
+Turn Reports display both the integer ID and the coordinate form for Stellium,
+Systems, Planets, Ships, and Colonies, to help players write orders.
 
 ---
 
@@ -362,6 +395,9 @@ expended to increase an Entity's TL per the following schedule:
 | 9         | 12,800,000   |
 | 10        | 25,600,000   |
 
+There is no research cost for reaching TL 1: no Entity ever enters the game
+below TL 1, so the schedule begins at target TL 2.
+
 TL may also be advanced by transferring technology from another Entity (via
 PRTO-TL) or purchasing it at a market or trade station.
 
@@ -479,7 +515,11 @@ in [§11]({{< ref "#11-orders-reference-canonical" >}}).
 
 ### 10.3 Turn Report
 The game engine's response to a Turn, returned to each player. Report structure is
-not yet specified (see [§12]({{< ref "#12-areas-not-yet-specified" >}})).
+not yet specified (see [§12]({{< ref "#12-areas-not-yet-specified" >}})). Whatever
+its final format, a report displays both the integer ID and the coordinate form
+for Stellium, Systems, Planets, Ships, and Colonies
+([§1.5]({{< ref "#15-identity-and-coordinate-display" >}})), to help players
+write orders.
 
 ### 10.4 Turn Processing Sequence
 
@@ -595,8 +635,8 @@ and gives the parser a reliable sync point at the start of each line.
 |--------------|----------------------------------------------|
 | `scID`       | Ship or colony ID (integer)                  |
 | `playerID`   | Player ID (integer)                          |
-| `systemID`   | System coordinate, e.g. `4-6-19`             |
-| `locationID` | Planet number (integer) or system coordinate |
+| `systemID`   | System ID (integer)                          |
+| `locationID` | Planet ID (integer) or System ID (integer)   |
 | `groupNo`    | Factory or mine group number (integer)       |
 
 **Values**
@@ -730,7 +770,7 @@ NEWS  at locationID  text  [sig text]
 ```
 ENTITY scID  MOVE  to locationID
 ```
-`locationID` is a planet number (integer) or a system coordinate (e.g. `4-6-19`).
+`locationID` is a Planet ID or a System ID (both integers).
 
 ### 11.15 Draft Orders
 
@@ -826,3 +866,14 @@ The following aspects of EC are not defined in this reference:
 - Combat damage-resolution formulas (combat factors, accuracy)
 - Market and trade station transaction mechanics
 - SPY and rebellion mechanics in detail
+- Transfer mechanics — how `TRANSFER` orders use TRNS throughput, crew, and
+  fuel ([§7]({{< ref "#7-transports-trns" >}}), [§11.7]({{< ref "#117-transfer-orders" >}}))
+- Production output rates (FACT manufacturing rates, LAB Research Point
+  generation per Turn)
+- Population dynamics formulas (SOL calculation, birth and death rates, wages,
+  CSGD satisfaction)
+- Order-language location tokens after the move to integer IDs: the legacy
+  grammar's coordinate form (`TK_LOCATION`, e.g. `4-6-19`) predates ID-based
+  identification and must be reconciled
+  ([§1.5]({{< ref "#15-identity-and-coordinate-display" >}}),
+  [§11.1]({{< ref "#111-conventions" >}}))
