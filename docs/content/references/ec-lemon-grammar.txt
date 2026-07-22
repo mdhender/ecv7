@@ -1,0 +1,381 @@
+/*
+** ec_orders.y — Lemon LALR(1) grammar for Epimethean Challenge modern orders.
+**
+** Actions are omitted; this file specifies structure only.
+**
+** TERMINAL NAMING CONVENTIONS
+** ───────────────────────────
+** Order-verb keywords  : all-caps, e.g. KW_BOMBARD, KW_ENTITY
+** Field-label keywords : KW_ prefix, e.g. KW_TARGET, KW_COMMIT
+** Literals             : TK_ prefix, e.g. TK_INTEGER, TK_DECIMAL
+**
+** LEXER RESPONSIBILITIES
+** ──────────────────────
+** The lexer (not this grammar) is responsible for:
+**
+**   TK_INTEGER    One or more decimal digits, e.g.  42
+**   TK_DECIMAL    Digits with a decimal point,  e.g. 0.25
+**   TK_STRING     Double-quoted text,            e.g. "Dragonfire"
+**   TK_UNIT_CODE  Unit identifier with optional TL suffix recognised by the
+**                 lexer, e.g. SOL, FACT-3, MINE-2, LSU-4.
+**                 The lexer must NOT tokenise FACT or MINE without a suffix
+**                 as TK_UNIT_CODE when they appear in assemble/disassemble
+**                 position — those are parsed as KW_FACT and KW_MINE with a
+**                 separate TK_INTEGER TL argument (see assembly_target below).
+**   TK_LOCATION   System coordinate of the form A-B-C, e.g. 4-6-19.
+**                 A plain planet number is TK_INTEGER and is resolved by the
+**                 grammar rule for location.
+**
+** All keyword tokens are case-insensitive at the lexer level.
+*/
+ 
+/* ── Start symbol ──────────────────────────────────────────────────────────── */
+ 
+%start_symbol  order_file
+ 
+/* ── Terminal declarations (for documentation; Lemon infers from rules) ───── */
+ 
+/* Structural keywords */
+%token KW_ENTITY KW_PLAYER KW_SETUP KW_END KW_TRANSFER KW_NEWS
+ 
+/* Order-verb keywords */
+%token KW_BOMBARD KW_INVADE KW_RAID KW_SUPPORT
+%token KW_ASSEMBLE KW_DISASSEMBLE
+%token KW_BUILDCHANGE KW_MININGCHANGE
+%token KW_SELL KW_BUY
+%token KW_SURVEY KW_PROBE
+%token KW_SPY
+%token KW_MOVE
+%token KW_DRAFT KW_DISBAND
+%token KW_PAY KW_RATION
+%token KW_CONTROL KW_UNCONTROL
+%token KW_NAME KW_NAMEP
+%token KW_PERMIT
+%token KW_COLONIZE
+ 
+/* Field-label keywords */
+%token KW_TARGET KW_COMMIT KW_STEAL
+%token KW_ALLY KW_ATTACKING
+%token KW_LOCATION KW_TYPE KW_SOURCE
+%token KW_PRODUCE KW_DEPOSIT
+%token KW_GROUP KW_RETOOL KW_RESEARCH
+%token KW_TO KW_FROM KW_AT
+%token KW_PRICE KW_WAGE KW_CLASS
+%token KW_PCT
+%token KW_ORBIT
+%token KW_SIG
+%token KW_PLANET
+%token KW_SYSTEM
+%token KW_PLAYER_KW   /* the field-label "player" inside PERMIT */
+ 
+/* Entity type keywords (inside SETUP) */
+%token KW_SHIP KW_COPN KW_CENC KW_CORB
+ 
+/* Population class keywords (inside PAY) */
+%token KW_USK KW_PRO KW_SOL
+ 
+/* Spy operation keywords */
+%token KW_CHECK KW_REBELS KW_CONVERT KW_FOR KW_SPIES
+%token KW_ATTACK KW_INCITE KW_GATHER KW_INFO
+ 
+/* Permission keywords (inside PERMIT) */
+%token KW_GRANT KW_DENY
+ 
+/* Literal value tokens */
+%token TK_INTEGER TK_DECIMAL TK_STRING TK_UNIT_CODE TK_LOCATION
+ 
+/* Factory / mine base keywords (used in assembly_target) */
+%token KW_FACT KW_MINE
+ 
+ 
+/* ═══════════════════════════════════════════════════════════════════════════
+** Top-level structure
+** ═══════════════════════════════════════════════════════════════════════════ */
+ 
+order_file ::= order_list .
+ 
+order_list ::= .
+order_list ::= order_list order .
+ 
+order ::= entity_order .
+order ::= player_order .
+order ::= setup_order .
+order ::= news_order .
+ 
+ 
+/* ═══════════════════════════════════════════════════════════════════════════
+** Shared low-level rules
+** ═══════════════════════════════════════════════════════════════════════════ */
+ 
+/* An sc_id is just an integer used as a ship/colony identifier. */
+sc_id    ::= TK_INTEGER .
+ 
+/* A player_id is just an integer used as a player identifier. */
+player_id ::= TK_INTEGER .
+ 
+/* A location is either a plain planet number or a system coordinate. */
+location ::= TK_INTEGER .
+location ::= TK_LOCATION .
+ 
+/* A unit_spec is a unit code token as produced by the lexer. */
+unit_spec ::= TK_UNIT_CODE .
+ 
+/* A qty is a plain integer. */
+qty ::= TK_INTEGER .
+ 
+/* A pct is a plain integer (0–100). */
+pct ::= TK_INTEGER .
+ 
+/* A price is either an integer or a decimal. */
+price ::= TK_INTEGER .
+price ::= TK_DECIMAL .
+ 
+/* A wage is either an integer or a decimal. */
+wage ::= TK_INTEGER .
+wage ::= TK_DECIMAL .
+ 
+/* A quoted name or free-text string. */
+quoted_string ::= TK_STRING .
+ 
+ 
+/* ═══════════════════════════════════════════════════════════════════════════
+** ENTITY orders
+** Subject: ENTITY sc_id
+** ═══════════════════════════════════════════════════════════════════════════ */
+ 
+entity_order ::= KW_ENTITY sc_id entity_verb .
+ 
+entity_verb ::= bombard_order .
+entity_verb ::= invade_order .
+entity_verb ::= raid_order .
+entity_verb ::= support_order .
+entity_verb ::= assemble_order .
+entity_verb ::= disassemble_order .
+entity_verb ::= buildchange_order .
+entity_verb ::= transfer_order .
+entity_verb ::= miningchange_order .
+entity_verb ::= sell_order .
+entity_verb ::= buy_order .
+entity_verb ::= survey_order .
+entity_verb ::= probe_order .
+entity_verb ::= spy_order .
+entity_verb ::= move_order .
+entity_verb ::= draft_order .
+entity_verb ::= disband_order .
+entity_verb ::= pay_order .
+entity_verb ::= ration_order .
+entity_verb ::= name_order .
+entity_verb ::= permit_order .
+ 
+ 
+/* ── 1a. BOMBARD ────────────────────────────────────────────────────────── */
+ 
+bombard_order ::= KW_BOMBARD KW_TARGET sc_id KW_COMMIT pct .
+ 
+ 
+/* ── 1b. INVADE ─────────────────────────────────────────────────────────── */
+ 
+invade_order ::= KW_INVADE KW_TARGET sc_id KW_COMMIT pct .
+ 
+ 
+/* ── 1c. RAID ───────────────────────────────────────────────────────────── */
+ 
+raid_order ::= KW_RAID KW_TARGET sc_id KW_COMMIT pct KW_STEAL unit_spec .
+ 
+ 
+/* ── 1d. SUPPORT ────────────────────────────────────────────────────────── */
+ 
+/* Defensive: no attacking clause */
+support_order ::= KW_SUPPORT KW_ALLY sc_id KW_COMMIT pct .
+ 
+/* Offensive: names the enemy being attacked */
+support_order ::= KW_SUPPORT KW_ALLY sc_id KW_ATTACKING sc_id KW_COMMIT pct .
+ 
+ 
+/* ── 3. ASSEMBLE ────────────────────────────────────────────────────────── */
+ 
+assemble_order ::= KW_ASSEMBLE assembly_target .
+ 
+assembly_target ::= qty unit_spec .
+assembly_target ::= qty KW_FACT TK_INTEGER KW_PRODUCE unit_spec .
+assembly_target ::= qty KW_MINE TK_INTEGER KW_DEPOSIT location .
+ 
+/*
+** Note: KW_FACT and KW_MINE carry the bare keyword; the lexer emits TK_INTEGER
+** for the following TL level.  The suffix form FACT-3 as a TK_UNIT_CODE is
+** used only in contexts where the TL does not need to be parsed separately
+** (e.g. TRANSFER, SELL/BUY).
+*/
+ 
+ 
+/* ── 4. DISASSEMBLE ─────────────────────────────────────────────────────── */
+ 
+disassemble_order ::= KW_DISASSEMBLE assembly_target .
+ 
+/* assembly_target is shared with assemble_order */
+ 
+ 
+/* ── 5. BUILDCHANGE ─────────────────────────────────────────────────────── */
+ 
+buildchange_order ::= KW_BUILDCHANGE KW_GROUP TK_INTEGER KW_PRODUCE unit_spec .
+buildchange_order ::= KW_BUILDCHANGE KW_GROUP TK_INTEGER KW_RETOOL .
+buildchange_order ::= KW_BUILDCHANGE KW_RESEARCH .
+ 
+ 
+/* ── 6. TRANSFER ────────────────────────────────────────────────────────── */
+ 
+transfer_order ::= KW_TRANSFER qty unit_spec KW_TO sc_id .
+ 
+ 
+/* ── 7. MININGCHANGE ────────────────────────────────────────────────────── */
+ 
+miningchange_order ::= KW_MININGCHANGE KW_GROUP TK_INTEGER KW_DEPOSIT location .
+ 
+ 
+/* ── 8a. SELL ───────────────────────────────────────────────────────────── */
+ 
+sell_order ::= KW_SELL unit_spec KW_PRICE price .
+ 
+ 
+/* ── 8b. BUY ────────────────────────────────────────────────────────────── */
+ 
+buy_order ::= KW_BUY qty unit_spec KW_PRICE price .
+ 
+ 
+/* ── 9. SURVEY ──────────────────────────────────────────────────────────── */
+ 
+survey_order ::= KW_SURVEY .
+ 
+ 
+/* ── 10. PROBE ──────────────────────────────────────────────────────────── */
+ 
+probe_order ::= KW_PROBE orbit_list .
+ 
+orbit_list ::= orbit_item .
+orbit_list ::= orbit_list orbit_item .
+ 
+orbit_item ::= KW_ORBIT TK_INTEGER .
+ 
+ 
+/* ── 11. SPY ────────────────────────────────────────────────────────────── */
+ 
+spy_order ::= KW_SPY qty spy_op .
+ 
+spy_op ::= KW_CHECK KW_REBELS .
+spy_op ::= KW_CONVERT KW_REBELS .
+spy_op ::= KW_CHECK KW_FOR KW_SPIES .
+spy_op ::= KW_ATTACK KW_SPIES KW_FROM sc_id .
+spy_op ::= KW_INCITE KW_REBELS KW_AT sc_id .
+spy_op ::= KW_GATHER KW_INFO KW_FROM sc_id .
+ 
+ 
+/* ── 13. MOVE ───────────────────────────────────────────────────────────── */
+ 
+move_order ::= KW_MOVE KW_TO location .
+ 
+ 
+/* ── 14a. DRAFT ─────────────────────────────────────────────────────────── */
+ 
+draft_order ::= KW_DRAFT qty unit_spec .
+ 
+ 
+/* ── 14b. DISBAND ───────────────────────────────────────────────────────── */
+ 
+disband_order ::= KW_DISBAND qty unit_spec .
+ 
+ 
+/* ── 15. PAY ────────────────────────────────────────────────────────────── */
+ 
+pay_order ::= KW_PAY KW_WAGE wage KW_CLASS pop_class .
+ 
+pop_class ::= KW_USK .
+pop_class ::= KW_PRO .
+pop_class ::= KW_SOL .
+ 
+ 
+/* ── 16. RATION ─────────────────────────────────────────────────────────── */
+ 
+ration_order ::= KW_RATION KW_PCT pct .
+ 
+ 
+/* ── 18b. NAME (ship or colony) ─────────────────────────────────────────── */
+ 
+name_order ::= KW_NAME KW_NAME quoted_string .
+ 
+/*
+** The field label "name" and the verb "NAME" are the same keyword token.
+** The rule reads: verb=KW_NAME  label=KW_NAME  value=quoted_string.
+*/
+ 
+ 
+/* ── 19. PERMIT ─────────────────────────────────────────────────────────── */
+ 
+permit_order ::= KW_PERMIT KW_PLAYER_KW player_id permit_decision .
+ 
+permit_decision ::= KW_GRANT .
+permit_decision ::= KW_DENY .
+ 
+ 
+/* ═══════════════════════════════════════════════════════════════════════════
+** PLAYER orders
+** Subject: PLAYER player_id
+** ═══════════════════════════════════════════════════════════════════════════ */
+ 
+player_order ::= KW_PLAYER player_id player_verb .
+ 
+player_verb ::= control_order .
+player_verb ::= uncontrol_order .
+player_verb ::= namep_order .
+player_verb ::= colonize_order .
+ 
+ 
+/* ── 17a. CONTROL ───────────────────────────────────────────────────────── */
+ 
+control_order ::= KW_CONTROL KW_SYSTEM location KW_ORBIT TK_INTEGER .
+ 
+ 
+/* ── 17b. UNCONTROL ─────────────────────────────────────────────────────── */
+ 
+uncontrol_order ::= KW_UNCONTROL KW_SYSTEM location KW_ORBIT TK_INTEGER .
+ 
+ 
+/* ── 18a. NAMEP (planet) ────────────────────────────────────────────────── */
+ 
+namep_order ::= KW_NAMEP KW_SYSTEM location KW_PLANET TK_INTEGER KW_NAME quoted_string .
+ 
+ 
+/* ── 20. COLONIZE ───────────────────────────────────────────────────────── */
+ 
+colonize_order ::= KW_COLONIZE KW_SYSTEM location KW_PLANET TK_INTEGER .
+ 
+ 
+/* ═══════════════════════════════════════════════════════════════════════════
+** SETUP block  (no ENTITY prefix — the new entity has no ID yet)
+** ═══════════════════════════════════════════════════════════════════════════ */
+ 
+setup_order ::= KW_SETUP
+                KW_LOCATION location
+                KW_TYPE entity_type
+                KW_SOURCE sc_id
+                setup_transfer_list
+                KW_END KW_SETUP .
+ 
+setup_transfer_list ::= setup_transfer .
+setup_transfer_list ::= setup_transfer_list setup_transfer .
+ 
+setup_transfer ::= KW_TRANSFER qty unit_spec .
+ 
+entity_type ::= KW_SHIP .
+entity_type ::= KW_COPN .
+entity_type ::= KW_CENC .
+entity_type ::= KW_CORB .
+ 
+ 
+/* ═══════════════════════════════════════════════════════════════════════════
+** NEWS order  (no ENTITY or PLAYER prefix — it is a global broadcast)
+** ═══════════════════════════════════════════════════════════════════════════ */
+ 
+news_order ::= KW_NEWS KW_AT location quoted_string .
+news_order ::= KW_NEWS KW_AT location quoted_string KW_SIG quoted_string .
+ 
+

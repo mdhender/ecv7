@@ -8,13 +8,14 @@ are building command-line tools for operating and playing the game.
 ## GitHub workflow
 
 - Assign every new GitHub issue and pull request to `@mdhender`.
-- While the project is in alpha, commit directly to `main`. Do not create a
-  feature branch unless the user explicitly asks for one.
+- Work on a feature branch and push it for review and safety. Do not commit
+  directly to `main`.
 - Before the final commit and push to upstream, bump the version in
   `version.go`:
   - Bump the minor version when adding, updating, or changing a feature.
   - Bump the patch version when fixing a bug or cleaning up code.
-  - Changes limited to the `docs/` path do not require a version bump.
+  - Changes limited to the `doc/` or `docs/` paths do not require a version
+    bump.
 
 ## Repository layout
 
@@ -24,6 +25,9 @@ are building command-line tools for operating and playing the game.
   entry points under `cmd/<tool>/` and supporting packages under `internal/`.
 - Repository metadata and project directories such as `docs/`, `games/`, and
   configuration files may remain at the root.
+- `docs/` is the authoritative source for game documentation.
+- `doc/` is a working directory for maintainer documentation and is not
+  authoritative.
 
 ## Command-line and database packages
 
