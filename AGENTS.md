@@ -38,6 +38,13 @@ are building command-line tools for operating and playing the game.
 - Keep the project CGO-free. Do not introduce SQLite drivers or other
   dependencies that require CGO.
 
+## Randomness
+
+- Use `math/rand/v2`, never the legacy `math/rand` package.
+- Game randomness must derive from `internal/prng` addressed streams. Do not
+  draw from ambient sources such as wall-clock time, package-level rand
+  functions, or map iteration order.
+
 ## Test data
 
 - Prefer temporary directories (for example, `t.TempDir()`) for test data.
