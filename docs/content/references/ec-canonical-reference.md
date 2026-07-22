@@ -66,6 +66,11 @@ as `(x, y, z, seq, orbit)`.
 | **Habitability** | Integer 0–25. Limits the number of FARM-1 units installable on the planet's surface.                                              |
 | **Deposits**     | A collection of Natural Resource deposits, each with a Quantity and Yield Percentage. Located by survey, extracted by MINE units. |
 
+A Planet holds at most 40 Deposits, numbered sequentially (`deposit_no` 1–40)
+when the Planet is generated; deposit numbers are never reused or renumbered. A
+Deposit's coordinate is its Planet's coordinate plus its number:
+`(x, y, z, seq, orbit, deposit_no)`.
+
 ### 1.5 Identity and Coordinate Display
 
 Stellium, Systems, and Planets are identified by their unique integer IDs, not
