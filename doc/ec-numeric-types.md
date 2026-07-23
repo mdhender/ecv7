@@ -2,8 +2,8 @@
 
 This maintainer reference records the numeric representation and formatting
 decisions chosen for the first EC v7 `NAME` and `TRANSFER` slice. It resolves
-GitHub issue #24. Rule-specific rounding, allocation, and converted-value
-validation remain with the game rules that perform those operations.
+GitHub issues #22 and #24. Rule-specific rounding and allocation remain with
+the game rules that perform those operations.
 
 ## Domain numeric types
 
@@ -16,11 +16,16 @@ type Quantity int64
 type MassUnit int64
 type VolumeUnit int64
 type TechLevel int64
+type ResearchPoints int64
 ```
 
 `Quantity` represents a count of inventory units. It is non-negative in game
 state, although a specific operation may impose a higher minimum. In particular,
 a `TRANSFER` order requests at least one whole unit.
+
+`ResearchPoints` represents a whole-unit research-point balance. Research
+calculations may use fractional intermediates, but stored balances and applied
+research costs are whole units.
 
 `MassUnit` and `VolumeUnit` are scaled integer values with a scale of 1,000:
 
@@ -129,13 +134,18 @@ operational-volume rule.
 
 ## Other canonical numeric values
 
+- Inventory resources, population units, manufactured units, currency, prices,
+  and Research Points are whole units. Soldiers use the unit code `SOL` and are
+  a whole-unit population quantity.
 - S.O.L. and Rations are non-negative `float64` values with four canonical
   decimal places and no defined upper bound. Practical S.O.L. values range from
   `0.0625` through `1.2500`; practical Rations values range from `0.0625`
   through `1.0000`.
+- Birth and death rates are non-negative fractional values. Their calculations
+  may produce fractional population changes, but population stored between
+  turns remains a whole-unit quantity.
 - `Yield_Pct` is an integer percentage point in the inclusive range 1 through
   99 and is displayed as an integer.
-- Prices and currency are whole units.
 - The marketplace purchase premium is an integer percentage point in the
   inclusive range 1 through 5.
 - Production retains only quarter-unit remainders: `0`, `0.25`, `0.5`, and
@@ -150,10 +160,21 @@ them rather than speculated into the first domain slice.
 Authoritative calculations use Go `float64` where fractional intermediates are
 required. The engine typically rounds a calculated result before storing it or
 applying it to other units. The applicable game rule defines the exact rounding
-boundary, direction, converted-value range validation, and failure behavior.
+boundary and direction. Canonical precision and rule-defined rounding, rather
+than the exact binary representation of an intermediate, determine the
+authoritative result.
 
-Non-finite values and invalid conversions must not be committed accidentally to
-game state. Detailed checks are defined with the rules that can produce them.
+Zero is generally the smallest value stored between turns. A domain rule may
+impose a higher minimum, such as `Yield_Pct` and a requested transfer quantity.
+Negative stored quantities are invalid; signed intermediate deltas do not make
+negative persistent state valid.
+
+Integer arithmetic must be checked for overflow and panic if overflow occurs;
+it must never wrap silently. A conversion is invalid if its source is
+non-finite, negative where the destination forbids negative values, fractional
+where the destination requires a whole value, or outside the destination
+type's range. Invalid conversions are rejected before state mutation. Values
+must never be clamped to make an invalid calculation fit.
 
 Known arithmetic boundaries are:
 
@@ -205,12 +226,33 @@ An individual stored item's volume is rounded up for display. A total stored
 volume sums the individual scaled values before rounding the total for display;
 it is not the sum of the separately rounded display values.
 
+## Transfer quantity examples
+
+A `TRANSFER` request must specify a positive whole-unit quantity. At execution,
+the number available to move is a whole number in the range:
+
+```text
+0..min(requested quantity, quantity on hand, transport acceptance, labor limit)
+```
+
+Damage, prior orders, or overallocation may reduce the available quantity to
+zero after a valid order was submitted. Issue #27 decides whether a constrained
+order is partially fulfilled or rejected; issue #32 defines the transport and
+labor limits.
+
+| Situation | Classification |
+|-----------|----------------|
+| Request 5 units; execution limits permit 7 | Valid; 5 units are available to move |
+| Request 0 units | Invalid request; the minimum requested quantity is 1 |
+| Request -1 or 1.5 units | Invalid request; quantities are positive whole units |
+| Request 5 units; damage leaves 0 on hand | Valid request, but 0 units are available at execution |
+| Request 10 units; execution limits permit 6 | Constrained request; #27 determines partial fulfillment or rejection |
+
 ## Deferred rule decisions
 
 The following decisions do not block the first `NAME` and `TRANSFER` slice:
 
 - exact rounding boundaries and directions beyond the known boundaries above;
-- range validation and failure behavior for each calculated conversion;
 - resource allocation and partial-fulfillment behavior for each order type;
 - production-pipeline behavior beyond the quarter-unit representation;
 - combat damage formulas and application rules; and
