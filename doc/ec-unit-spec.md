@@ -68,3 +68,40 @@ type UnitSpec struct {
     `UnitSpec`.
   - Research Points (`RP`) are a non-physical bookkeeping balance, not a
     `UnitSpec`.
+
+## 4. Parsing and formatting
+
+Text is parsed to a `UnitSpec` (or to a non-spec kind), and specs are formatted
+back to a single canonical text form. Parsing validates against the authoritative
+unit set — the codes and TL domains referenced in the introduction.
+
+**Case.** Codes are accepted in any case and matched case-insensitively. The
+canonical form emitted is always uppercase (UC-3).
+
+### 4.1 Parsing (text → spec or kind)
+
+- **P-1 (suffixed)** `CODE-N`, with `N` an integer `0`–`10`, resolves by exact
+  `(CODE, N)` membership in the catalog and is valid if and only if the pair
+  exists. Unknown codes and out-of-domain levels (`TRNS-0`, `TRNS-11`, `STRC-0`)
+  are rejected (US-1).
+- **P-2 (bare TL-0)** A bare `CODE` for a TL-0 unit resolves to `(CODE, 0)`.
+- **P-3 (bare non-TL)** A bare `CODE` for a non-spec kind (Population, Cadre,
+  `RP`) resolves to that kind, not a `UnitSpec` (US-3).
+- **P-4 (bare TL-bearing rejected)** A bare `CODE` for a TL-bearing unit does not
+  resolve: the Tech Level is required. In particular, `FACT`, `FARM`, and `MINE`
+  require the `-TL` suffix in every position; forms that write them bare with a
+  separate integer Tech Level are out of date and are reconciled under the
+  grammar cleanup (AC 4 of #25).
+
+### 4.2 Formatting (spec or kind → canonical text)
+
+- **F-1** A TL-bearing spec formats as `CODE-N` (for example `FACT-3`).
+- **F-2** A TL-0 spec formats as bare `CODE`, omitting the `-0`. `CODE` and
+  `CODE-0` therefore parse to the same spec `(CODE, 0)` (US-2), and the canonical
+  output is the bare form.
+- **F-3** A non-spec kind formats as bare `CODE`.
+
+> The concrete authoritative code set — including the `MSUP` → `CSUP` rename and
+> the other maintainer updates from the consolidated tables — is being folded
+> into the canonical reference. Until that lands, these rules stand but the
+> enumerated examples (AC 3 of #25) are deferred.
