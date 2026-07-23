@@ -44,3 +44,63 @@
 | USK       | Unskilled Workers   | Living         | no   | 1             | N/A                | 1                | N/A             | N/A                 | Food and Consumer Goods                                                             | Provide labor to operate certain assembled items                                     |
 
 Note: `ASM?` means the unit requires assembly before it can be used operationally.
+
+## Cross-Reference: Mass, Volume & Inputs vs. `ec-mass-volume.md`
+
+This table compares the consolidated table above against our current
+`doc/ec-mass-volume.md`. Volume is compared using the consolidated **Volume
+Assembled** figure (shown simplified; the source stores it as `Unassembled ×
+2`), which lines up with `ec-mass-volume.md`'s single Volume value. Inputs are
+the metals / non-metals build costs.
+
+**Legend:** ✅ values agree · ⚠️ values differ (fields noted) · — no counterpart row
+
+| Item Code | Mass (M‑V) | Mass (Cons.) | Volume (M‑V) | Volume Assm. (Cons.)           | METL In (M‑V) | METL In (Cons.) | NMTL In (M‑V) | NMTL In (Cons.) | Status                                                    |
+|-----------|------------|--------------|--------------|--------------------------------|---------------|-----------------|---------------|-----------------|-----------------------------------------------------------|
+| AMSL      | 4 × TL     | 4 × TL       | 4 × TL       | 4 × TL                         | 2 × TL        | 2 × TL          | 2 × TL        | 2 × TL          | ✅                                                        |
+| ACFT      | 5 × TL     | 5 × TL       | 5 × TL       | 5 × TL                         | 3 × TL        | 3 × TL          | 2 × TL        | 2 × TL          | ✅                                                        |
+| AWPN      | 2 × TL     | 2 × TL       | 20           | 2 × TL                         | 1 × TL        | 1 × TL          | 1 × TL        | 1 × TL          | ⚠️ Volume                                                 |
+| AUTO      | 4 × TL     | 4 × TL       | 4 × TL       | 4 × TL                         | 2 × TL        | 2 × TL          | 2 × TL        | 2 × TL          | ✅                                                        |
+| BMR       | —          | (40×TL)+4600 | —            | (40×TL)+4600                   | —             | (10×TL)+2100    | —             | (30×TL)+2500    | — Consolidated only                                       |
+| CNST      | —          | 1            | —            | 1                              | —             | N/A             | —             | N/A             | — Consolidated only (Cadre)                               |
+| CSGD      | 0.6        | 0.6          | 1.0          | 0.3                            | 0.2           | 0.2             | 0.4           | 0.4             | ⚠️ Volume                                                 |
+| ESHD      | 50 × TL    | 20 × TL      | 50 × TL      | 20 × TL                        | 25 × TL       | 10 × TL         | 25 × TL       | 10 × TL         | ⚠️ Mass, Volume, METL, NMTL                               |
+| EWPN      | 10 × TL    | 10 × TL      | 10 × TL      | 10 × TL                        | 5 × TL        | 5 × TL          | 5 × TL        | 5 × TL          | ✅                                                        |
+| FACT      | 12 + 2×TL  | 12 + 2×TL    | 12 + 2×TL    | 12 + 2×TL                      | 8 + TL        | 8 + TL          | 4 + TL        | 4 + TL          | ✅                                                        |
+| FARM      | 6 + TL     | 6 + 2×TL     | 6 + TL       | 6 + 2×TL                       | 4 + TL        | 4 + TL          | 2 + TL        | 2 + TL          | ⚠️ Mass, Volume                                           |
+| FOOD      | 1          | 6            | 6            | 3                              | —             | 0               | —             | 0               | ⚠️ Mass, Volume                                           |
+| FUEL      | 1          | 1            | 1            | 0.5                            | —             | 0               | —             | 0               | ⚠️ Volume                                                 |
+| HDRV      | 45 × TL    | 45 × TL      | 60 × TL      | 45 × TL                        | 25 × TL       | 25 × TL         | 20 × TL       | 20 × TL         | ⚠️ Volume                                                 |
+| LAB       | 12 + 2×TL  | 8 + 2×TL     | 12 + 2×TL    | 8 + 2×TL                       | 8 + TL        | 5 + TL          | 4 + TL        | 3 + TL          | ⚠️ Mass, Volume, METL, NMTL                               |
+| LSU       | 8 × TL     | 8 × TL       | 12 × TL      | 8 × TL                         | 3 × TL        | 3 × TL          | 5 × TL        | 5 × TL          | ⚠️ Volume                                                 |
+| METL      | 1          | 1            | 0.5          | 0.5                            | —             | 0               | —             | 0               | ✅                                                        |
+| MRBT      | (2×TL)+20  | (2×TL)+20    | (2×TL)+20    | (2×TL)+20                      | 10 + TL       | 10 + TL         | 10 + TL       | 10 + TL         | ✅                                                        |
+| MINE      | 10 + 2×TL  | 10 + 2×TL    | 10 + 2×TL    | 10 + 2×TL                      | 5 + TL        | 5 + TL          | 5 + TL        | 5 + TL          | ✅                                                        |
+| MLNC      | 25 × TL    | 25 × TL      | 25 × TL      | 25 × TL                        | 15 × TL       | 15 × TL         | 10 × TL       | 10 × TL         | ✅                                                        |
+| MSSL      | 4 × TL     | 4 × TL       | 4 × TL       | 4 × TL                         | 2 × TL        | 2 × TL          | 2 × TL        | 2 × TL          | ✅                                                        |
+| NMTL      | 1          | 1            | 0.5          | 0.5                            | —             | 0               | —             | 0               | ✅                                                        |
+| POL       | —          | 1            | —            | 1                              | —             | N/A             | —             | N/A             | — Consolidated only (Cadre)                               |
+| POWR      | —          | 10 + 2×TL    | —            | 10 + 2×TL                      | —             | 5 + TL          | —             | 5 + TL          | — Consolidated only                                       |
+| PRO       | 1          | 1            | 1            | 1                              | —             | N/A             | —             | N/A             | ✅                                                        |
+| PRTO      | TL         | TL           | 3 × TL       | 3 × TL                         | TBD           | TBD             | TBD           | TBD             | ✅ (inputs TBD in both)                                   |
+| PROB      | TBD        | 500/TL       | TBD          | 500/TL                         | TBD           | 200/TL          | TBD           | 300/TL          | ⚠️ M‑V unspecified; Consolidated defines values           |
+| RP        | —          | 0            | —            | 0                              | —             | 0               | —             | 0               | — no M‑V row (non-physical)                               |
+| SENS      | 30 × TL    | 3000 × TL    | 40 × TL      | 3000 × TL                      | 10 × TL       | 1000 × TL       | 20 × TL       | 2000 × TL       | ⚠️ Mass, Volume, METL, NMTL (~100×)                       |
+| SOL       | 1          | 1            | 1            | 1                              | —             | N/A             | —             | N/A             | ✅                                                        |
+| SDRV      | 25 × TL    | 25 × TL      | 33 × TL      | 25 × TL                        | 15 × TL       | 15 × TL         | 10 × TL       | 10 × TL         | ⚠️ Volume                                                 |
+| SPAG      | —          | 1            | —            | 1                              | —             | N/A             | —             | N/A             | — Consolidated only (Cadre)                               |
+| SPY       | —          | 1            | —            | 1                              | —             | N/A             | —             | N/A             | — Consolidated only (Cadre)                               |
+| STRC      | 0.5        | 0.1 × TL     | 0.5          | See Output (0.05 × TL unassm.) | 0.1           | 0.07 × TL       | 0.4           | 0.03 × TL       | ⚠️ Mass, Volume, METL, NMTL (Consolidated scales with TL) |
+| TRNE      | —          | 1            | —            | 1                              | —             | N/A             | —             | N/A             | — Consolidated only (Cadre)                               |
+| TRNS      | 4 × TL     | 4 × TL       | 6 × TL       | 4 × TL                         | 3 × TL        | 3 × TL          | 1 × TL        | 1 × TL          | ⚠️ Volume                                                 |
+| UEM       | 1          | 1            | 1            | 1                              | —             | N/A             | —             | N/A             | ✅                                                        |
+| USK       | 1          | 1            | 1            | 1                              | —             | N/A             | —             | N/A             | ✅                                                        |
+| MSUP      | 0.04       | —            | 0.04         | —                              | 0.02          | —               | 0.02          | —               | — M‑V only (no Consolidated row)                          |
+
+### Discrepancy summary
+
+- **Rebalanced across every dimension:** `ESHD` (M‑V ~2.5× heavier/costlier), `LAB` (M‑V reuses `FACT`'s `8+TL / 4+TL / 12+2×TL` figures), `SENS` (Consolidated ~100× larger), `STRC` (Consolidated scales with TL; M‑V is flat), and `FOOD` (mass 1 vs 6, volume 6 vs 3).
+- **Volume-only differences:** `AWPN` (flat 20 vs `2×TL`), `CSGD` (1.0 vs 0.3), `FUEL` (1 vs 0.5), `HDRV` (60×TL vs 45×TL), `LSU` (12×TL vs 8×TL), `SDRV` (33×TL vs 25×TL), `TRNS` (6×TL vs 4×TL).
+- **Mass & volume coefficient differs:** `FARM` (M‑V uses `+TL`, Consolidated uses `+2×TL`, unlike `FACT`/`MINE` which agree).
+- **Unspecified in one source:** `PROB` (Consolidated now gives `500/TL` mass & `200/300 per TL` inputs; M‑V is still TBD).
+- **Present in only one table:** `MSUP` (M‑V only); `BMR`, `CNST`, `POL`, `POWR`, `RP`, `SPAG`, `SPY`, `TRNE` (Consolidated only — mostly Cadre and future-game units).
