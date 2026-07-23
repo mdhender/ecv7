@@ -134,7 +134,7 @@ Cadre units are derived counts — they represent Population Units temporarily a
 
 | Code | Name | Description |
 |---|---|---|
-| CNST | Construction | Execute assembly and disassembly orders |
+| CNST | Construction Worker | Execute assembly and disassembly orders |
 | TRNE | Trainees | Unskilled workers in training |
 | WRKR | Workers | PRO and USK units allocated to a FACT, FARM, or MINE |
 | SPY | Spies | Report on other Factions and incite rebellion |
@@ -186,7 +186,7 @@ Production Units are manufactured by FACT-TL (all except FOOD) or FARM-TL (FOOD 
 | Code | Name | Description |
 |---|---|---|
 | LAB-TL | Laboratory | Generates Research Points (RPs) each Turn |
-| RP | Research Points | Currency for TL advancement; not a physical unit |
+| RP | Research Point | Currency for TL advancement; not a physical unit |
 | PRTO-TL | Prototypes | Used to transfer Tech Levels between Entities |
 
 #### Movement
@@ -200,8 +200,8 @@ Production Units are manufactured by FACT-TL (all except FOOD) or FARM-TL (FOOD 
 |---|---|---|
 | LSU-TL | Life Support | Recycles air and water; required on SHIP-TL, CENC-TL, and CORB-TL (supports TL² population units per LSU) |
 | SENS-TL | Sensors | Detect Ships and Colonies in orbit; conduct probes (1 × TL probes per Turn) |
-| PROB-TL | Probes | Executed by SENS; report on Ships, Colonies, and Deposits in the same System |
-| STRC-TL | Structural | Required to build Ships and Colonies; STRC-2 variant is Light Structural |
+| PROB-TL | Probe | Executed by SENS; report on Ships, Colonies, and Deposits in the same System |
+| STRC-TL | Structure | Required to build Ships and Colonies; STRC-2 variant is Light Structural |
 | TRNS-TL | Transports | Transfer Population and materials between Ships/Colonies at the same Planet |
 
 ---
