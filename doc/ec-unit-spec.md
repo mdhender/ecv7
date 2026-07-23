@@ -168,3 +168,33 @@ in `UnitDefinition` rather than in the identity.
   quantities of the same `UnitSpec`. The stored/assembled distinction is a
   separate dimension of the inventory line, not part of `UnitSpec` equality or
   the key; its final shape is owned by issue #26.
+
+## 7. Decision status and deferred questions
+
+This document is the recorded maintainer decision for the unit specification. The
+decisions it fixes are:
+
+- unit-code, Tech-Level, and combined-spec invariants (§1–§3);
+- parsing and formatting, including case handling and the bare-form rules (§4);
+- worked examples for production, population, resource, and transport units (§5);
+  and
+- equality and inventory-key semantics (§6).
+
+The following questions are deferred. None of them blocks the invariants above;
+each is owned elsewhere and is listed here so the open surface is recorded in one
+place:
+
+- **Bare-form grammar cleanup.** `FACT`, `FARM`, and `MINE` always require the
+  `-TL` suffix (P-4); the Lemon grammar and `ec-modern-orders.md` still admit bare
+  forms with a separate integer Tech Level and are the tracked follow-up (AC 4 of
+  #25).
+- **Stored vs. assembled inventory shape.** The stored/assembled dimension of an
+  inventory line and its transition rules are owned by issue #26 (IK-4).
+- **Stored vs. operational volume.** Whether a unit occupies different volume when
+  stored versus assembled is open in the canonical facts and is isolated in issue
+  #26; it does not affect unit identity.
+- **`PROB` unit costs.** Production inputs, mass, and volume for `PROB` are not yet
+  specified (`TBD` in [`ec-mass-volume.md`](ec-mass-volume.md) and the
+  Unit-Definition Catalog in [`ec-unit-tables.md`](ec-unit-tables.md)).
+- **`PRTO` production inputs.** Metal and non-metal inputs for `PRTO` are not yet
+  specified (`TBD` in the same tables); its mass and volume are known.
