@@ -73,12 +73,12 @@ volume.
 |--------|------------------|-------------|-------------|--------------|--------------|-------------|
 | AUTO   | Automation       | `2 × TL`    | `2 × TL`    | `4 × TL`     | `4 × TL`     | Yes         |
 | CSGD   | Consumer Goods   | 0.2         | 0.4         | 0.6          | 1.0          | No          |
-| HDRV   | Hyper Engines    | `25 × TL`   | `20 × TL`   | `45 × TL`    | `60 × TL`    | Yes         |
+| HDRV   | Hyper Drive      | `25 × TL`   | `20 × TL`   | `45 × TL`    | `60 × TL`    | Yes         |
 | LSU    | Life Support     | `3 × TL`    | `5 × TL`    | `8 × TL`     | `12 × TL`    | Yes         |
-| PROB   | Probes           | TBD         | TBD         | TBD          | TBD          | No          |
+| PROB   | Probe            | TBD         | TBD         | TBD          | TBD          | No          |
 | SENS   | Sensors          | `10 × TL`   | `20 × TL`   | `30 × TL`    | `40 × TL`    | Yes         |
 | SDRV   | Space Drives     | `15 × TL`   | `10 × TL`   | `25 × TL`    | `33 × TL`    | Yes         |
-| STRC   | Structural       | 0.1         | 0.4         | 0.5          | 0.5          | Yes         |
+| STRC   | Structure        | 0.1         | 0.4         | 0.5          | 0.5          | Yes         |
 | TRNS   | Transports       | `3 × TL`    | `1 × TL`    | `4 × TL`     | `6 × TL`     | No          |
 
 PROB has Tech Levels 1 through 10. Its production inputs, mass, and volume are
@@ -92,7 +92,7 @@ not yet specified.
 
 **Volume derivation rule:** Volume defaults to Mass unless a distinct value is specified.
 
-**Operational units**: Space Drives, Sensors, Automation, Life Support, Energy Weapons, Energy Shields, Mining Units, Factories, Farms, Hyper Engines, Structural, Missile Launchers. These must be assembled after being taken out of storage to function.
+**Operational units**: Space Drives, Sensors, Automation, Life Support, Energy Weapons, Energy Shields, Mining Units, Factories, Farms, Hyper Drive, Structure, Missile Launchers. These must be assembled after being taken out of storage to function.
 
 ---
 
