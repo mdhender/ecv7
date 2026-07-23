@@ -1,119 +1,193 @@
 # Epimethean Challenge - Unit Table
 
-## Consolidated Unit Table
+# Units and Classes
 
-| Item Code | Item Name           | Class          | ASM? | Mass           | Volume Unassembled | Volume Assembled | Metals to Build | Non-Metals to Build | Operational Requirements                                                  | Output and Notes                                                                     |
-|-----------|---------------------|----------------|------|----------------|--------------------|------------------|-----------------|---------------------|---------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| AMSL      | Anti-Missile        | Ammunition     | no   | 4 x TL         | N/A                | 4 x TL           | 2 x TL          | 2 x TL              | Missile Launcher of same TL                                               | Destroys Missiles see combat                                                         |
-| ACFT      | Assault Craft       | Weaponry       | no   | 5 x TL         | N/A                | 5 x TL           | 3 x TL          | 2 x TL              | 1 soldier or military robot equivalent + 0.1 fuel in combat               | Provides 10 x TL combat factors does not require transports to attack                |
-| AWPN      | Assault Weapons     | Weaponry       | no   | 2 x TL         | N/A                | 2 x TL           | 1 x TL          | 1 x TL              | 1 soldier or military robot equivalent                                    | Provides 2 x TL^2 combat factors                                                     |
-| AUTO      | Automation          | Infrastructure | yes  | 4 x TL         | 2 x TL             | 4 x TL           | 2 x TL          | 2 x TL              | Must be assembled                                                         | Replaces 1 x TL^2 Unskilled see Automation in Production chapter                     |
-| BMR       | Beamer              | Infrastructure | yes  | 40 x TL + 4600 | 20 x TL + 2300     | 40 x TL + 4600   | 10 x TL + 2100  | 30 x TL + 2500      | Must be assembled - 1 PRO / 25 Beamers and 20 x TL^2 fuel per Beamer      | Beams 5000 x TL^2 Mass Units                                                         |
-| CNST      | Construction Worker | Cadre          | no   | 1              | N/A                | 1                | N/A             | N/A                 | N/A                                                                       | Provide manpower to assemble, disassemble, add on and scrap items to/from SCs        |
-| CSGD      | Consumer Goods      | Commodity      | no   | 0.6            | N/A                | 0.3              | 0.2             | 0.4                 | N/A                                                                       | Consumption determines S.O.L.                                                        |
-| CSUP      | Combat Supplies     | Ammunition     | no   | 0.04           | N/A                | 0.04             | 0.02            | 0.02                | N/A                                                                       | Consumed in combat - 1 per soldier per combat round                                  |
-| ESHD      | Energy Shield       | Weaponry       | yes  | 20 x TL        | 10 x TL            | 20 x TL          | 10 x TL         | 10 x TL             | Must be assembled - 1 soldier / 100 and uses 10 x TL fuel only            | Deflects 10 x TL^2 energy units per use                                              |
-| EWPN      | Energy Weapon       | Weaponry       | yes  | 10 x TL        | 5 x TL             | 10 x TL          | 5 x TL          | 5 x TL              | Must be assembled - 1 soldier / 100 and uses 4 x TL fuel only             | Destroys 10 x TL^2 mass per hit                                                      |
-| FACT      | Factory             | Infrastructure | yes  | 2 x TL + 12    | TL + 6             | 2 x TL + 12      | TL + 8          | 4 + TL              | Must be assembled - 1 professional 3 unskilled and 0.5 x TL fuel or power | Produces 20 x TL mass per turn see Manufacturing                                     |
-| FARM      | Farm                | Infrastructure | yes  | 2 x TL + 6     | TL + 3             | 2 x TL + 6       | TL + 4          | 2 + TL              | Must be assembled - 1 professional 3 unskilled fuel or power varies       | Production varies via TL see Farming                                                 |
-| FOOD      | Food                | Commodity      | no   | 6              | N/A                | 3                | N/A             | N/A                 | N/A                                                                       | Feeds 4 to 16 population each turn see Basic Needs                                   |
-| FUEL      | Fuel                | Resource       | no   | 1              | N/A                | 0.5              | N/A             | N/A                 | N/A                                                                       | Raw material used by many units                                                      |
-| HDRV      | Hyper Drive         | Propulsion     | yes  | 45 x TL        | 22.5 x TL          | 45 x TL          | 25 x TL         | 20 x TL             | Must be assembled - 1 professional / 100 and 40 fuel only per light year  | Lift capacity 1045 x TL range is (Square root of TL) + 4                             |
-| LAB       | Laboratory          | Infrastructure | yes  | 2 x TL + 8     | TL + 4             | 2 x TL + 8       | TL + 5          | TL + 3              | Must be assembled - 3 professional 1 unskilled, 0.5 x TL fuel or power    | Produces 0.25 x TL research per turn                                                 |
-| LSU       | Life Support        | Static         | yes  | 8 x TL         | 4 x TL             | 8 x TL           | 3 x TL          | 5 x TL              | Must be assembled - 1 x TL fuel or power                                  | Supports 1 x TL^2 population                                                         |
-| METL      | Metallics           | Resource       | no   | 1              | N/A                | 0.5              | 0               | 0                   | N/A                                                                       | Raw material used in production                                                      |
-| MRBT      | Military Robot      | Weaponry       | no   | 2 x TL + 20    | N/A                | 2 x TL + 20      | TL + 10         | TL + 10             | none                                                                      | Same as 2 x TL soldiers                                                              |
-| MINE      | Mine                | Infrastructure | yes  | 2 x TL + 10    | TL + 5             | 2 x TL + 10      | TL + 5          | TL + 5              | Must be assembled - 1 professional 3 unskilled, 0.5 x TL fuel or power    | Mines 25 x TL per turn in raw ore. Actual net depends on yield of deposit see Mining |
-| MLNC      | Missile Launcher    | Weaponry       | yes  | 25 x TL        | 12.5 x TL          | 25 x TL          | 15 x TL         | 10 x TL             | Must be assembled - 1 soldier / 100                                       | Launches 1 missile per attack see Combat                                             |
-| MSSL      | Missile             | Ammunition     | no   | 4 x TL         | N/A                | 4 x TL           | 2 x TL          | 2 x TL              | Missile Launcher of same TL                                               | Destroys 100 x TL^2 Mass                                                             |
-| NMTL      | Non-Metallics       | Resource       | no   | 1              | N/A                | 0.5              | 0               | 0                   | N/A                                                                       | Raw material used in production                                                      |
-| POL       | Police              | Cadre          | no   | 1              | N/A                | 1                | N/A             | N/A                 | N/A                                                                       | Drafted to keep the peace and suppress rebellion by arresting rebels                 |
-| POWR      | Power Plant         | Infrastructure | yes  | 2 x TL + 10    | TL + 5             | TL x 2 + 10      | TL + 5          | TL + 5              | Must be assembled - Open Surface Colonies ONLY                            | Produces TL Power per turn (think hydro electric)                                    |
-| PRO       | Professionals       | Living         | no   | 1              | N/A                | 1                | N/A             | N/A                 | Food and Consumer Goods                                                   | Provide administrative and managerial services to operate certain assembled items    |
-| PRTO      | Prototype           | Technology     | no   | TL             | N/A                | 3 x TL           | TBD             | TBD                 | N/A                                                                       | Transfer Tech Levels between Entities                                                |
-| PROB      | Probe               | Recon          | no   | 500/TL         | N/A                | 500/TL           | 200/TL          | 300/TL              | N/A                                                                       | Obtains probe data - expended when used                                              |
-| RBL       | Rebel               | Cadre          | no   | 1              | N/A                | 1                | N/A             | N/A                 | N/A                                                                       | Tally of population willing to rebel; does not allocate the underlying units         |
-| RP        | Research Point      | Technology     | no   | 0              | N/A                | 0                | 0               | 0                   | N/A                                                                       | Expended to increase TLs                                                             |
-| SENS      | Sensor              | Recon          | yes  | 3000 x TL      | 1500 x TL          | 3000 x TL        | 1000 x TL       | 2000 x TL           | Must be assembled - 0.05 x TL fuel or power                               | Used to obtain probe information                                                     |
-| SOL       | Soldiers            | Living         | no   | 1              | N/A                | 1                | N/A             | N/A                 | Food and Consumer Goods as well as 1 x military supplies during combat    | Provide combat factors and also staffing for certain weapons systems                 |
-| SDRV      | Space Drive         | Propulsion     | yes  | 25 x TL        | 12.5 X TL          | 25 x TL          | 15 X TL         | 10 x TL             | Must be assembled - 1 professional / 100 and 1 x TL fuel only             | Produces 3000 x TL^2 thrust                                                          |
-| SPAG      | Special Agent       | Cadre          | no   | 1              | N/A                | 1                | N/A             | N/A                 | N/A                                                                       | Used to infiltrate rebel population sectors and assist police in locating rebels     |
-| SPY       | Spy                 | Cadre          | no   | 1              | N/A                | 1                | N/A             | N/A                 | N/A                                                                       | Used to perform espionage                                                            |
-| STRC      | Structure           | Structural     | yes  | 0.1 x TL       | 0.05 x TL          | See Output       | 0.07 x TL       | 0.03 x TL           | Must be assembled to enclose volume                                       | Encloses (1 x TL^2) divided by structural requirement                                |
-| TRNE      | Trainee             | Cadre          | no   | 1              | N/A                | 1                | N/A             | N/A                 | Professionals to perform Training                                         | Trainees are in training to become Professionals                                     |
-| TRNS      | Transport           | Transportation | no   | 4 x TL         | N/A                | 4 x TL           | 3 x TL          | 1 x TL              | 1 professional / 10 and 0.1 x TL^2 fuel                                   | Transports 20 x TL^2 Mass; In Combat = 3 x TL^2 Mass                                 |
-| UEM       | Unemployables       | Living         | no   | 1              | N/A                | 1                | N/A             | N/A                 | Food and Consumer Goods                                                   | Population growth occurs in this category                                            |
-| USK       | Unskilled Workers   | Living         | no   | 1              | N/A                | 1                | N/A             | N/A                 | Food and Consumer Goods                                                   | Provide labor to operate certain assembled items                                     |
+| Item Code | Item Name           | Class          |
+|-----------|---------------------|----------------|
+| AMSL      | Anti-Missile        | Ammunition     |
+| ACFT      | Assault Craft       | Weaponry       |
+| AWPN      | Assault Weapons     | Weaponry       |
+| AUTO      | Automation          | Infrastructure |
+| BMR       | Beamer              | Infrastructure |
+| CNST      | Construction Worker | Cadre          |
+| CSGD      | Consumer Goods      | Commodity      |
+| CSUP      | Combat Supplies     | Ammunition     |
+| ESHD      | Energy Shield       | Weaponry       |
+| EWPN      | Energy Weapon       | Weaponry       |
+| FACT      | Factory             | Infrastructure |
+| FARM      | Farm                | Infrastructure |
+| FOOD      | Food                | Commodity      |
+| FUEL      | Fuel                | Resource       |
+| HDRV      | Hyper Drive         | Propulsion     |
+| LAB       | Laboratory          | Infrastructure |
+| LSU       | Life Support        | Static         |
+| METL      | Metallics           | Resource       |
+| MRBT      | Military Robot      | Weaponry       |
+| MINE      | Mine                | Infrastructure |
+| MLNC      | Missile Launcher    | Weaponry       |
+| MSSL      | Missile             | Ammunition     |
+| NMTL      | Non-Metallics       | Resource       |
+| POL       | Police              | Cadre          |
+| POWR      | Power Plant         | Infrastructure |
+| PRO       | Professionals       | Living         |
+| PRTO      | Prototype           | Technology     |
+| PROB      | Probe               | Recon          |
+| RBL       | Rebel               | Cadre          |
+| RP        | Research Point      | Technology     |
+| SENS      | Sensor              | Recon          |
+| SOL       | Soldiers            | Living         |
+| SDRV      | Space Drive         | Propulsion     |
+| SPAG      | Special Agent       | Cadre          |
+| SPY       | Spy                 | Cadre          |
+| STRC      | Structure           | Structural     |
+| STRL      | Light Structure     | Structural     |
+| TRNE      | Trainee             | Cadre          |
+| TRNS      | Transport           | Transportation |
+| UEM       | Unemployables       | Living         |
+| USK       | Unskilled Workers   | Living         |
 
-Note: `ASM?` means the unit requires assembly before it can be used operationally.
+## Unit Inputs
 
-## Cross-Reference: Mass, Volume & Inputs vs. `ec-mass-volume.md`
+> **NOTE**
+> Non-production units (Resources, Food, Cadres) are excluded from this table.
 
-This table compares the consolidated table above against our current
-`doc/ec-mass-volume.md`. Volume is compared using the consolidated **Volume
-Assembled** figure (shown simplified; the source stores it as `Unassembled ×
-2`), which lines up with `ec-mass-volume.md`'s single Volume value. Inputs are
-the metals / non-metals build costs.
+| Item Code | Metals to Build | Non-Metals to Build |
+|-----------|-----------------|---------------------|
+| AMSL      | 2 x TL          | 2 x TL              |
+| ACFT      | 3 x TL          | 2 x TL              |
+| AWPN      | 1 x TL          | 1 x TL              |
+| AUTO      | 2 x TL          | 2 x TL              |
+| BMR       | 10 x (TL + 210) | 30 x TL + 2500      |
+| CSGD      | 0.2             | 0.4                 |
+| CSUP      | 0.02            | 0.02                |
+| ESHD      | 10 x TL         | 10 x TL             |
+| EWPN      | 5 x TL          | 5 x TL              |
+| FACT      | TL + 8          | 4 + TL              |
+| FARM      | TL + 4          | 2 + TL              |
+| HDRV      | 25 x TL         | 20 x TL             |
+| LAB       | TL + 5          | TL + 3              |
+| LSU       | 3 x TL          | 5 x TL              |
+| MRBT      | TL + 10         | TL + 10             |
+| MINE      | TL + 5          | TL + 5              |
+| MLNC      | 15 x TL         | 10 x TL             |
+| MSSL      | 2 x TL          | 2 x TL              |
+| POWR      | TL + 5          | TL + 5              |
+| PRTO      | TBD             | TBD                 |
+| PROB      | 200/TL          | 300/TL              |
+| SENS      | 1000 x TL       | 2000 x TL           |
+| SDRV      | 15 x TL         | 10 x TL             |
+| STRC      | 0.7 x TL        | 0.3 x TL            |
+| STRL      | 0.07 x TL       | 0.03 x TL           |
+| TRNS      | 3 x TL          | 1 x TL              |
 
-**Legend:** ✅ values agree · ⚠️ values differ (fields noted) · — no counterpart row
+# Operational Units
 
-| Item Code       | Mass (M‑V) | Mass (Cons.) | Volume (M‑V) | Volume Assm. (Cons.)           | METL In (M‑V) | METL In (Cons.) | NMTL In (M‑V) | NMTL In (Cons.) | Status                                                    |
-|-----------------|------------|--------------|--------------|--------------------------------|---------------|-----------------|---------------|-----------------|-----------------------------------------------------------|
-| AMSL            | 4 × TL     | 4 × TL       | 4 × TL       | 4 × TL                         | 2 × TL        | 2 × TL          | 2 × TL        | 2 × TL          | ✅                                                        |
-| ACFT            | 5 × TL     | 5 × TL       | 5 × TL       | 5 × TL                         | 3 × TL        | 3 × TL          | 2 × TL        | 2 × TL          | ✅                                                        |
-| AWPN            | 2 × TL     | 2 × TL       | 20           | 2 × TL                         | 1 × TL        | 1 × TL          | 1 × TL        | 1 × TL          | ⚠️ Volume                                                 |
-| AUTO            | 4 × TL     | 4 × TL       | 4 × TL       | 4 × TL                         | 2 × TL        | 2 × TL          | 2 × TL        | 2 × TL          | ✅                                                        |
-| BMR             | —          | (40×TL)+4600 | —            | (40×TL)+4600                   | —             | (10×TL)+2100    | —             | (30×TL)+2500    | — Consolidated only                                       |
-| CNST            | —          | 1            | —            | 1                              | —             | N/A             | —             | N/A             | — Consolidated only (Cadre)                               |
-| CSGD            | 0.6        | 0.6          | 1.0          | 0.3                            | 0.2           | 0.2             | 0.4           | 0.4             | ⚠️ Volume                                                 |
-| ESHD            | 50 × TL    | 20 × TL      | 50 × TL      | 20 × TL                        | 25 × TL       | 10 × TL         | 25 × TL       | 10 × TL         | ⚠️ Mass, Volume, METL, NMTL                               |
-| EWPN            | 10 × TL    | 10 × TL      | 10 × TL      | 10 × TL                        | 5 × TL        | 5 × TL          | 5 × TL        | 5 × TL          | ✅                                                        |
-| FACT            | 12 + 2×TL  | 12 + 2×TL    | 12 + 2×TL    | 12 + 2×TL                      | 8 + TL        | 8 + TL          | 4 + TL        | 4 + TL          | ✅                                                        |
-| FARM            | 6 + TL     | 6 + 2×TL     | 6 + TL       | 6 + 2×TL                       | 4 + TL        | 4 + TL          | 2 + TL        | 2 + TL          | ⚠️ Mass, Volume                                           |
-| FOOD            | 1          | 6            | 6            | 3                              | —             | 0               | —             | 0               | ⚠️ Mass, Volume                                           |
-| FUEL            | 1          | 1            | 1            | 0.5                            | —             | 0               | —             | 0               | ⚠️ Volume                                                 |
-| HDRV            | 45 × TL    | 45 × TL      | 60 × TL      | 45 × TL                        | 25 × TL       | 25 × TL         | 20 × TL       | 20 × TL         | ⚠️ Volume                                                 |
-| LAB             | 12 + 2×TL  | 8 + 2×TL     | 12 + 2×TL    | 8 + 2×TL                       | 8 + TL        | 5 + TL          | 4 + TL        | 3 + TL          | ⚠️ Mass, Volume, METL, NMTL                               |
-| LSU             | 8 × TL     | 8 × TL       | 12 × TL      | 8 × TL                         | 3 × TL        | 3 × TL          | 5 × TL        | 5 × TL          | ⚠️ Volume                                                 |
-| METL            | 1          | 1            | 0.5          | 0.5                            | —             | 0               | —             | 0               | ✅                                                        |
-| MRBT            | (2×TL)+20  | (2×TL)+20    | (2×TL)+20    | (2×TL)+20                      | 10 + TL       | 10 + TL         | 10 + TL       | 10 + TL         | ✅                                                        |
-| MINE            | 10 + 2×TL  | 10 + 2×TL    | 10 + 2×TL    | 10 + 2×TL                      | 5 + TL        | 5 + TL          | 5 + TL        | 5 + TL          | ✅                                                        |
-| MLNC            | 25 × TL    | 25 × TL      | 25 × TL      | 25 × TL                        | 15 × TL       | 15 × TL         | 10 × TL       | 10 × TL         | ✅                                                        |
-| MSSL            | 4 × TL     | 4 × TL       | 4 × TL       | 4 × TL                         | 2 × TL        | 2 × TL          | 2 × TL        | 2 × TL          | ✅                                                        |
-| NMTL            | 1          | 1            | 0.5          | 0.5                            | —             | 0               | —             | 0               | ✅                                                        |
-| POL             | —          | 1            | —            | 1                              | —             | N/A             | —             | N/A             | — Consolidated only (Cadre)                               |
-| POWR            | —          | 10 + 2×TL    | —            | 10 + 2×TL                      | —             | 5 + TL          | —             | 5 + TL          | — Consolidated only                                       |
-| PRO             | 1          | 1            | 1            | 1                              | —             | N/A             | —             | N/A             | ✅                                                        |
-| PRTO            | TL         | TL           | 3 × TL       | 3 × TL                         | TBD           | TBD             | TBD           | TBD             | ✅ (inputs TBD in both)                                   |
-| PROB            | TBD        | 500/TL       | TBD          | 500/TL                         | TBD           | 200/TL          | TBD           | 300/TL          | ⚠️ M‑V unspecified; Consolidated defines values           |
-| RBL             | —          | 1            | —            | 1                              | —             | N/A             | —             | N/A             | — Consolidated only (Cadre)                               |
-| RP              | —          | 0            | —            | 0                              | —             | 0               | —             | 0               | — no M‑V row (non-physical)                               |
-| SENS            | 30 × TL    | 3000 × TL    | 40 × TL      | 3000 × TL                      | 10 × TL       | 1000 × TL       | 20 × TL       | 2000 × TL       | ⚠️ Mass, Volume, METL, NMTL (~100×)                       |
-| SOL             | 1          | 1            | 1            | 1                              | —             | N/A             | —             | N/A             | ✅                                                        |
-| SDRV            | 25 × TL    | 25 × TL      | 33 × TL      | 25 × TL                        | 15 × TL       | 15 × TL         | 10 × TL       | 10 × TL         | ⚠️ Volume                                                 |
-| SPAG            | —          | 1            | —            | 1                              | —             | N/A             | —             | N/A             | — Consolidated only (Cadre)                               |
-| SPY             | —          | 1            | —            | 1                              | —             | N/A             | —             | N/A             | — Consolidated only (Cadre)                               |
-| STRC            | 0.5        | 0.1 × TL     | 0.5          | See Output (0.05 × TL unassm.) | 0.1           | 0.07 × TL       | 0.4           | 0.03 × TL       | ⚠️ Mass, Volume, METL, NMTL (Consolidated scales with TL) |
-| TRNE            | —          | 1            | —            | 1                              | —             | N/A             | —             | N/A             | — Consolidated only (Cadre)                               |
-| TRNS            | 4 × TL     | 4 × TL       | 6 × TL       | 4 × TL                         | 3 × TL        | 3 × TL          | 1 × TL        | 1 × TL          | ⚠️ Volume                                                 |
-| UEM             | 1          | 1            | 1            | 1                              | —             | N/A             | —             | N/A             | ✅                                                        |
-| USK             | 1          | 1            | 1            | 1                              | —             | N/A             | —             | N/A             | ✅                                                        |
-| CSUP (was MSUP) | 0.04       | 0.04         | 0.04         | 0.04                           | 0.02          | 0.02            | 0.02          | 0.02            | ✅ renamed MSUP → CSUP                                    |
+Operational Units must be assembled prior to being used.
 
-### Discrepancy summary
+| Item Code | ASM? |
+|-----------|------|
+| AUTO      | yes  |
+| BMR       | yes  |
+| ESHD      | yes  |
+| EWPN      | yes  |
+| FACT      | yes  |
+| FARM      | yes  |
+| HDRV      | yes  |
+| LAB       | yes  |
+| LSU       | yes  |
+| MINE      | yes  |
+| MLNC      | yes  |
+| POWR      | yes  |
+| SENS      | yes  |
+| SDRV      | yes  |
+| STRC      | yes  |
+| STRL      | yes  |
 
-- **Rebalanced across every dimension:**
-  - `ESHD` (M‑V ~2.5× heavier/costlier)
-  - `LAB` (M‑V reuses `FACT`'s `8+TL / 4+TL / 12+2×TL` figures)
-  - `SENS` (Consolidated ~100× larger)
-  - `STRC` (Consolidated scales with TL; M‑V is flat)
-  - `FOOD` (mass 1 vs 6, volume 6 vs 3)
-- **Volume-only differences:** `AWPN` (flat 20 vs `2×TL`), `CSGD` (1.0 vs 0.3), `FUEL` (1 vs 0.5), `HDRV` (60×TL vs 45×TL), `LSU` (12×TL vs 8×TL), `SDRV` (33×TL vs 25×TL), `TRNS` (6×TL vs 4×TL)
-- **Mass & volume coefficient differs:** `FARM` (M‑V uses `+TL`, Consolidated uses `+2×TL`, unlike `FACT`/`MINE` which agree)
-- **Unspecified in one source:** `PROB` (Consolidated now gives `500/TL` mass & `200/300 per TL` inputs; M‑V is still TBD)
-- **Present in only one table:**
-  - `MSUP` (M‑V only)
-  - `BMR`, `CNST`, `POL`, `POWR`, `RP`, `SPAG`, `SPY`, `TRNE` (Consolidated only — mostly Cadre and future-game units)
+# Unit Mass and Volume
+
+| Item Code | Mass            | Volume          | Volume Stowed   |
+|-----------|-----------------|-----------------|-----------------|
+| AMSL      | 4 x TL          | 4 x TL          | 2 x TL          |
+| ACFT      | 5 x TL          | 5 x TL          | 2.5 x TL        |
+| AWPN      | 2 x TL          | 2 x TL          | 1 x TL          |
+| AUTO      | 4 x TL          | 4 x TL          | 2 x TL          |
+| BMR       | 40 x (TL + 115) | 40 x (TL + 115) | 20 x (TL + 115) |
+| CSGD      | 0.6             | 0.3             | 0.3             |
+| CSUP      | 0.04            | 0.04            | 0.04            |
+| ESHD      | 20 x TL         | 20 x TL         | 10 x TL         |
+| EWPN      | 10 x TL         | 10 x TL         | 5 x TL          |
+| FACT      | 2 x (TL + 6)    | 2 x (TL + 6)    | TL + 6          |
+| FARM      | 2 x (TL + 3)    | 2 x (TL + 3)    | TL + 3          |
+| FOOD      | 6               | 3               | 3               |
+| FUEL      | 1               | 0.5             | 0.5             |
+| HDRV      | 45 x TL         | 45 x TL         | 22.5 x TL       |
+| LAB       | 2 x TL + 8      | 2 x TL + 8      | TL + 4          |
+| LSU       | 8 x TL          | 8 x TL          | 4 x TL          |
+| METL      | 1               | 0.5             | 0.5             |
+| MRBT      | 2 x (TL + 10)   | 2 x (TL + 10)   | TL + 10         |
+| MINE      | 2 x (TL + 5)    | 2 x (TL + 5)    | TL + 5          |
+| MLNC      | 25 x TL         | 25 x TL         | 12.5 x TL       |
+| MSSL      | 4 x TL          | 4 x TL          | 4 x TL          |
+| NMTL      | 1               | 0.5             | 0.5             |
+| POWR      | 2 x (TL + 5)    | 2 x (TL + 5)    | TL + 5          |
+| PRTO      | TL              | 3 x TL          | 3 x TL          |
+| PROB      | 500/TL          | 500/TL          | 500/TL          |
+| RP        | 0               | 0               | 0               |
+| SENS      | 3000 x TL       | 3000 x TL       | 1500 x TL       |
+| SDRV      | 25 x TL         | 25 x TL         | 12.5 X TL       |
+| STRC      | 1 x TL          | 1 x TL          | 1 x TL          |
+| STRL      | 0.1 x TL        | 0.1 x TL        | 0.1 x TL        |
+| TRNS      | 4 x TL          | 4 x TL          | 4 x TL          |
+
+> **NOTE**
+> All Population Units have Mass of 1 MU and Volume of 1 VU.
+> Population Units can never be stowed.
+
+## Unit Notes
+
+| Item Code | Operational Requirements                                               | Output and Notes                                                                     |
+|-----------|------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| AMSL      | Missile Launcher of same TL                                            | Destroys Missiles see combat                                                         |
+| ACFT      | 1 soldier or military robot equivalent + 0.1 fuel in combat            | Provides 10 x TL combat factors does not require transports to attack                |
+| AWPN      | 1 soldier or military robot equivalent                                 | Provides 2 x TL^2 combat factors                                                     |
+| AUTO      |                                                                        | Replaces 1 x TL^2 Unskilled see Automation in Production chapter                     |
+| BMR       | 1 PRO / 25 Beamers and 20 x TL^2 fuel per Beamer                       | Beams 5000 x TL^2 Mass Units                                                         |
+| CNST      |                                                                        | Provide manpower to assemble, disassemble, add on and scrap items to/from SCs        |
+| CSGD      |                                                                        | Consumption determines S.O.L.                                                        |
+| CSUP      |                                                                        | Consumed in combat - 1 per soldier per combat round                                  |
+| ESHD      | 1 soldier / 100 and uses 10 x TL fuel only                             | Deflects 10 x TL^2 energy units per use                                              |
+| EWPN      | 1 soldier / 100 and uses 4 x TL fuel only                              | Destroys 10 x TL^2 mass per hit                                                      |
+| FACT      | 1 professional 3 unskilled and 0.5 x TL fuel or power                  | Produces 20 x TL mass per turn see Manufacturing                                     |
+| FARM      | 1 professional 3 unskilled fuel or power varies                        | Production varies via TL see Farming                                                 |
+| FOOD      |                                                                        | Feeds 4 to 16 population each turn see Basic Needs                                   |
+| FUEL      |                                                                        | Raw material used by many units                                                      |
+| HDRV      | 1 professional / 100 and 40 fuel only per light year                   | Lift capacity 1045 x TL range is (Square root of TL) + 4                             |
+| LAB       | 3 professional 1 unskilled, 0.5 x TL fuel or power                     | Produces 0.25 x TL research per turn                                                 |
+| LSU       | 1 x TL fuel or power                                                   | Supports 1 x TL^2 population                                                         |
+| METL      |                                                                        | Raw material used in production                                                      |
+| MRBT      |                                                                        | Same as 2 x TL soldiers                                                              |
+| MINE      | 1 professional 3 unskilled, 0.5 x TL fuel or power                     | Mines 25 x TL per turn in raw ore. Actual net depends on yield of deposit see Mining |
+| MLNC      | 1 soldier / 100                                                        | Launches 1 missile per attack see Combat                                             |
+| MSSL      | Missile Launcher of same TL                                            | Destroys 100 x TL^2 Mass                                                             |
+| NMTL      |                                                                        | Raw material used in production                                                      |
+| POL       |                                                                        | Drafted to keep the peace and suppress rebellion by arresting rebels                 |
+| POWR      | Open Surface Colonies ONLY                                             | Produces TL Power per turn (think hydro electric)                                    |
+| PRO       | Food and Consumer Goods                                                | Provide administrative and managerial services to operate certain assembled items    |
+| PRTO      |                                                                        | Transfer Tech Levels between Entities                                                |
+| PROB      |                                                                        | Obtains probe data - expended when used                                              |
+| RBL       |                                                                        | Tally of population willing to rebel; does not allocate the underlying units         |
+| RP        |                                                                        | Expended to increase TLs                                                             |
+| SENS      | 0.05 x TL fuel or power                                                | Used to obtain probe information                                                     |
+| SOL       | Food and Consumer Goods as well as 1 x military supplies during combat | Provide combat factors and also staffing for certain weapons systems                 |
+| SDRV      | 1 professional / 100 and 1 x TL fuel only                              | Produces 3000 x TL^2 thrust                                                          |
+| SPAG      |                                                                        | Used to infiltrate rebel population sectors and assist police in locating rebels     |
+| SPY       |                                                                        | Used to perform espionage                                                            |
+| STRC      | Must be assembled to enclose volume                                    | Encloses (1 x TL^2) divided by structural requirement (based on Entity type)         |
+| STRL      | Must be assembled to enclose volume                                    | Light structure; encloses (1 x TL^2) divided by structural requirement (based on Entity type) |
+| TRNE      | Professionals to perform Training                                      | Trainees are in training to become Professionals                                     |
+| TRNS      | 1 professional / 10 and 0.1 x TL^2 fuel                                | Transports 20 x TL^2 Mass; In Combat = 3 x TL^2 Mass                                 |
+| UEM       | Food and Consumer Goods                                                | Population growth occurs in this category                                            |
+| USK       | Food and Consumer Goods                                                | Provide labor to operate certain assembled items                                     |
 
 ## Draft: Unit-Definition Catalog (from #25)
 
@@ -124,9 +198,10 @@ the metals / non-metals build costs.
 > Fixed-point encoding of the numeric columns is unsettled; values are shown as
 > computed.
 
-Generated from the **Consolidated Unit Table** above: `mass_units` from `Mass`,
-`volume_units` from `Volume Assembled`, and `requires_assembly` from `ASM?`
-(`1` = must be assembled, `0` = not).
+Generated from the tables above: `metl_input` and `nmtl_input` from **Unit
+Inputs**, `mass_units` from **Mass** and `volume_units` from **Volume** (both in
+**Unit Mass and Volume**), and `requires_assembly?` from **Operational Units**
+(`ASM?`). The `tech_level?` flag marks whether a unit carries Tech Levels.
 
 Generation rules applied:
 
@@ -135,14 +210,15 @@ Generation rules applied:
   `RBL`, `SPAG`, `SPY`, `TRNE`) entries are `PopulationClass`, not `UnitSpec`,
   and have no rows.
 - `RP` is a non-physical bookkeeping unit and has no row.
-- All remaining units have TL1–TL10 rows, except `CSGD` and `CSUP` (TL0 only)
-  and `STRC` (TL1 and TL2 only).
+- All remaining units have TL1–TL10 rows, except `CSGD` and `CSUP` (TL0 only).
 - Invariant: a unit code never has both a TL0 row and a positive-TL row.
 
 Notes:
 
-- Values derive from the consolidated (future-game) data and therefore differ
-  from `doc/ec-mass-volume.md` for the units flagged in the cross-reference.
+- Values derive from the consolidated (future-game) tables above and may differ
+  from `doc/ec-mass-volume.md`.
+- `PROB` uses the `200/TL`, `300/TL`, and `500/TL` figures read as division;
+  confirm that interpretation before relying on these values.
 
 
 | unit_code | tech_level? | requires_assembly? |
@@ -175,236 +251,255 @@ Notes:
 | SDRV      | yes         | yes                |
 | SENS      | yes         | yes                |
 | STRC      | yes         | yes                |
+| STRL      | yes         | yes                |
 | TRNS      | yes         | no                 |
 
 
 | unit_code | tech_level | metl_input | nmtl_input | mass_units | volume_units |
 |-----------|------------|------------|------------|------------|--------------|
-| ACFT      | 1          | ?          | ?          | 5          | 5            |
-| ACFT      | 2          | ?          | ?          | 10         | 10           |
-| ACFT      | 3          | ?          | ?          | 15         | 15           |
-| ACFT      | 4          | ?          | ?          | 20         | 20           |
-| ACFT      | 5          | ?          | ?          | 25         | 25           |
-| ACFT      | 6          | ?          | ?          | 30         | 30           |
-| ACFT      | 7          | ?          | ?          | 35         | 35           |
-| ACFT      | 8          | ?          | ?          | 40         | 40           |
-| ACFT      | 9          | ?          | ?          | 45         | 45           |
-| ACFT      | 10         | ?          | ?          | 50         | 50           |
-| AMSL      | 1          | ?          | ?          | 4          | 4            |
-| AMSL      | 2          | ?          | ?          | 8          | 8            |
-| AMSL      | 3          | ?          | ?          | 12         | 12           |
-| AMSL      | 4          | ?          | ?          | 16         | 16           |
-| AMSL      | 5          | ?          | ?          | 20         | 20           |
-| AMSL      | 6          | ?          | ?          | 24         | 24           |
-| AMSL      | 7          | ?          | ?          | 28         | 28           |
-| AMSL      | 8          | ?          | ?          | 32         | 32           |
-| AMSL      | 9          | ?          | ?          | 36         | 36           |
-| AMSL      | 10         | ?          | ?          | 40         | 40           |
-| AUTO      | 1          | ?          | ?          | 4          | 4            |
-| AUTO      | 2          | ?          | ?          | 8          | 8            |
-| AUTO      | 3          | ?          | ?          | 12         | 12           |
-| AUTO      | 4          | ?          | ?          | 16         | 16           |
-| AUTO      | 5          | ?          | ?          | 20         | 20           |
-| AUTO      | 6          | ?          | ?          | 24         | 24           |
-| AUTO      | 7          | ?          | ?          | 28         | 28           |
-| AUTO      | 8          | ?          | ?          | 32         | 32           |
-| AUTO      | 9          | ?          | ?          | 36         | 36           |
-| AUTO      | 10         | ?          | ?          | 40         | 40           |
-| AWPN      | 1          | ?          | ?          | 2          | 2            |
-| AWPN      | 2          | ?          | ?          | 4          | 4            |
-| AWPN      | 3          | ?          | ?          | 6          | 6            |
-| AWPN      | 4          | ?          | ?          | 8          | 8            |
-| AWPN      | 5          | ?          | ?          | 10         | 10           |
-| AWPN      | 6          | ?          | ?          | 12         | 12           |
-| AWPN      | 7          | ?          | ?          | 14         | 14           |
-| AWPN      | 8          | ?          | ?          | 16         | 16           |
-| AWPN      | 9          | ?          | ?          | 18         | 18           |
-| AWPN      | 10         | ?          | ?          | 20         | 20           |
-| BMR       | 1          | ?          | ?          | 4640       | 4640         |
-| BMR       | 2          | ?          | ?          | 4680       | 4680         |
-| BMR       | 3          | ?          | ?          | 4720       | 4720         |
-| BMR       | 4          | ?          | ?          | 4760       | 4760         |
-| BMR       | 5          | ?          | ?          | 4800       | 4800         |
-| BMR       | 6          | ?          | ?          | 4840       | 4840         |
-| BMR       | 7          | ?          | ?          | 4880       | 4880         |
-| BMR       | 8          | ?          | ?          | 4920       | 4920         |
-| BMR       | 9          | ?          | ?          | 4960       | 4960         |
-| BMR       | 10         | ?          | ?          | 5000       | 5000         |
-| CSGD      | 0          | ?          | ?          | 0.6        | 0.3          |
-| CSUP      | 0          | ?          | ?          | 0.04       | 0.04         |
-| ESHD      | 1          | ?          | ?          | 20         | 20           |
-| ESHD      | 2          | ?          | ?          | 40         | 40           |
-| ESHD      | 3          | ?          | ?          | 60         | 60           |
-| ESHD      | 4          | ?          | ?          | 80         | 80           |
-| ESHD      | 5          | ?          | ?          | 100        | 100          |
-| ESHD      | 6          | ?          | ?          | 120        | 120          |
-| ESHD      | 7          | ?          | ?          | 140        | 140          |
-| ESHD      | 8          | ?          | ?          | 160        | 160          |
-| ESHD      | 9          | ?          | ?          | 180        | 180          |
-| ESHD      | 10         | ?          | ?          | 200        | 200          |
-| EWPN      | 1          | ?          | ?          | 10         | 10           |
-| EWPN      | 2          | ?          | ?          | 20         | 20           |
-| EWPN      | 3          | ?          | ?          | 30         | 30           |
-| EWPN      | 4          | ?          | ?          | 40         | 40           |
-| EWPN      | 5          | ?          | ?          | 50         | 50           |
-| EWPN      | 6          | ?          | ?          | 60         | 60           |
-| EWPN      | 7          | ?          | ?          | 70         | 70           |
-| EWPN      | 8          | ?          | ?          | 80         | 80           |
-| EWPN      | 9          | ?          | ?          | 90         | 90           |
-| EWPN      | 10         | ?          | ?          | 100        | 100          |
-| FACT      | 1          | ?          | ?          | 14         | 14           |
-| FACT      | 2          | ?          | ?          | 16         | 16           |
-| FACT      | 3          | ?          | ?          | 18         | 18           |
-| FACT      | 4          | ?          | ?          | 20         | 20           |
-| FACT      | 5          | ?          | ?          | 22         | 22           |
-| FACT      | 6          | ?          | ?          | 24         | 24           |
-| FACT      | 7          | ?          | ?          | 26         | 26           |
-| FACT      | 8          | ?          | ?          | 28         | 28           |
-| FACT      | 9          | ?          | ?          | 30         | 30           |
-| FACT      | 10         | ?          | ?          | 32         | 32           |
-| FARM      | 1          | ?          | ?          | 8          | 8            |
-| FARM      | 2          | ?          | ?          | 10         | 10           |
-| FARM      | 3          | ?          | ?          | 12         | 12           |
-| FARM      | 4          | ?          | ?          | 14         | 14           |
-| FARM      | 5          | ?          | ?          | 16         | 16           |
-| FARM      | 6          | ?          | ?          | 18         | 18           |
-| FARM      | 7          | ?          | ?          | 20         | 20           |
-| FARM      | 8          | ?          | ?          | 22         | 22           |
-| FARM      | 9          | ?          | ?          | 24         | 24           |
-| FARM      | 10         | ?          | ?          | 26         | 26           |
+| ACFT      | 1          | 3          | 2          | 5          | 5            |
+| ACFT      | 2          | 6          | 4          | 10         | 10           |
+| ACFT      | 3          | 9          | 6          | 15         | 15           |
+| ACFT      | 4          | 12         | 8          | 20         | 20           |
+| ACFT      | 5          | 15         | 10         | 25         | 25           |
+| ACFT      | 6          | 18         | 12         | 30         | 30           |
+| ACFT      | 7          | 21         | 14         | 35         | 35           |
+| ACFT      | 8          | 24         | 16         | 40         | 40           |
+| ACFT      | 9          | 27         | 18         | 45         | 45           |
+| ACFT      | 10         | 30         | 20         | 50         | 50           |
+| AMSL      | 1          | 2          | 2          | 4          | 4            |
+| AMSL      | 2          | 4          | 4          | 8          | 8            |
+| AMSL      | 3          | 6          | 6          | 12         | 12           |
+| AMSL      | 4          | 8          | 8          | 16         | 16           |
+| AMSL      | 5          | 10         | 10         | 20         | 20           |
+| AMSL      | 6          | 12         | 12         | 24         | 24           |
+| AMSL      | 7          | 14         | 14         | 28         | 28           |
+| AMSL      | 8          | 16         | 16         | 32         | 32           |
+| AMSL      | 9          | 18         | 18         | 36         | 36           |
+| AMSL      | 10         | 20         | 20         | 40         | 40           |
+| AUTO      | 1          | 2          | 2          | 4          | 4            |
+| AUTO      | 2          | 4          | 4          | 8          | 8            |
+| AUTO      | 3          | 6          | 6          | 12         | 12           |
+| AUTO      | 4          | 8          | 8          | 16         | 16           |
+| AUTO      | 5          | 10         | 10         | 20         | 20           |
+| AUTO      | 6          | 12         | 12         | 24         | 24           |
+| AUTO      | 7          | 14         | 14         | 28         | 28           |
+| AUTO      | 8          | 16         | 16         | 32         | 32           |
+| AUTO      | 9          | 18         | 18         | 36         | 36           |
+| AUTO      | 10         | 20         | 20         | 40         | 40           |
+| AWPN      | 1          | 1          | 1          | 2          | 2            |
+| AWPN      | 2          | 2          | 2          | 4          | 4            |
+| AWPN      | 3          | 3          | 3          | 6          | 6            |
+| AWPN      | 4          | 4          | 4          | 8          | 8            |
+| AWPN      | 5          | 5          | 5          | 10         | 10           |
+| AWPN      | 6          | 6          | 6          | 12         | 12           |
+| AWPN      | 7          | 7          | 7          | 14         | 14           |
+| AWPN      | 8          | 8          | 8          | 16         | 16           |
+| AWPN      | 9          | 9          | 9          | 18         | 18           |
+| AWPN      | 10         | 10         | 10         | 20         | 20           |
+| BMR       | 1          | 2110       | 2530       | 4640       | 4640         |
+| BMR       | 2          | 2120       | 2560       | 4680       | 4680         |
+| BMR       | 3          | 2130       | 2590       | 4720       | 4720         |
+| BMR       | 4          | 2140       | 2620       | 4760       | 4760         |
+| BMR       | 5          | 2150       | 2650       | 4800       | 4800         |
+| BMR       | 6          | 2160       | 2680       | 4840       | 4840         |
+| BMR       | 7          | 2170       | 2710       | 4880       | 4880         |
+| BMR       | 8          | 2180       | 2740       | 4920       | 4920         |
+| BMR       | 9          | 2190       | 2770       | 4960       | 4960         |
+| BMR       | 10         | 2200       | 2800       | 5000       | 5000         |
+| CSGD      | 0          | 0.2        | 0.4        | 0.6        | 0.3          |
+| CSUP      | 0          | 0.02       | 0.02       | 0.04       | 0.04         |
+| ESHD      | 1          | 10         | 10         | 20         | 20           |
+| ESHD      | 2          | 20         | 20         | 40         | 40           |
+| ESHD      | 3          | 30         | 30         | 60         | 60           |
+| ESHD      | 4          | 40         | 40         | 80         | 80           |
+| ESHD      | 5          | 50         | 50         | 100        | 100          |
+| ESHD      | 6          | 60         | 60         | 120        | 120          |
+| ESHD      | 7          | 70         | 70         | 140        | 140          |
+| ESHD      | 8          | 80         | 80         | 160        | 160          |
+| ESHD      | 9          | 90         | 90         | 180        | 180          |
+| ESHD      | 10         | 100        | 100        | 200        | 200          |
+| EWPN      | 1          | 5          | 5          | 10         | 10           |
+| EWPN      | 2          | 10         | 10         | 20         | 20           |
+| EWPN      | 3          | 15         | 15         | 30         | 30           |
+| EWPN      | 4          | 20         | 20         | 40         | 40           |
+| EWPN      | 5          | 25         | 25         | 50         | 50           |
+| EWPN      | 6          | 30         | 30         | 60         | 60           |
+| EWPN      | 7          | 35         | 35         | 70         | 70           |
+| EWPN      | 8          | 40         | 40         | 80         | 80           |
+| EWPN      | 9          | 45         | 45         | 90         | 90           |
+| EWPN      | 10         | 50         | 50         | 100        | 100          |
+| FACT      | 1          | 9          | 5          | 14         | 14           |
+| FACT      | 2          | 10         | 6          | 16         | 16           |
+| FACT      | 3          | 11         | 7          | 18         | 18           |
+| FACT      | 4          | 12         | 8          | 20         | 20           |
+| FACT      | 5          | 13         | 9          | 22         | 22           |
+| FACT      | 6          | 14         | 10         | 24         | 24           |
+| FACT      | 7          | 15         | 11         | 26         | 26           |
+| FACT      | 8          | 16         | 12         | 28         | 28           |
+| FACT      | 9          | 17         | 13         | 30         | 30           |
+| FACT      | 10         | 18         | 14         | 32         | 32           |
+| FARM      | 1          | 5          | 3          | 8          | 8            |
+| FARM      | 2          | 6          | 4          | 10         | 10           |
+| FARM      | 3          | 7          | 5          | 12         | 12           |
+| FARM      | 4          | 8          | 6          | 14         | 14           |
+| FARM      | 5          | 9          | 7          | 16         | 16           |
+| FARM      | 6          | 10         | 8          | 18         | 18           |
+| FARM      | 7          | 11         | 9          | 20         | 20           |
+| FARM      | 8          | 12         | 10         | 22         | 22           |
+| FARM      | 9          | 13         | 11         | 24         | 24           |
+| FARM      | 10         | 14         | 12         | 26         | 26           |
 | FOOD      | 0          | N/A        | N/A        | 6          | 3            |
 | FUEL      | 0          | N/A        | N/A        | 1          | 0.5          |
-| HDRV      | 1          | ?          | ?          | 45         | 45           |
-| HDRV      | 2          | ?          | ?          | 90         | 90           |
-| HDRV      | 3          | ?          | ?          | 135        | 135          |
-| HDRV      | 4          | ?          | ?          | 180        | 180          |
-| HDRV      | 5          | ?          | ?          | 225        | 225          |
-| HDRV      | 6          | ?          | ?          | 270        | 270          |
-| HDRV      | 7          | ?          | ?          | 315        | 315          |
-| HDRV      | 8          | ?          | ?          | 360        | 360          |
-| HDRV      | 9          | ?          | ?          | 405        | 405          |
-| HDRV      | 10         | ?          | ?          | 450        | 450          |
-| LAB       | 1          | ?          | ?          | 10         | 10           |
-| LAB       | 2          | ?          | ?          | 12         | 12           |
-| LAB       | 3          | ?          | ?          | 14         | 14           |
-| LAB       | 4          | ?          | ?          | 16         | 16           |
-| LAB       | 5          | ?          | ?          | 18         | 18           |
-| LAB       | 6          | ?          | ?          | 20         | 20           |
-| LAB       | 7          | ?          | ?          | 22         | 22           |
-| LAB       | 8          | ?          | ?          | 24         | 24           |
-| LAB       | 9          | ?          | ?          | 26         | 26           |
-| LAB       | 10         | ?          | ?          | 28         | 28           |
-| LSU       | 1          | ?          | ?          | 8          | 8            |
-| LSU       | 2          | ?          | ?          | 16         | 16           |
-| LSU       | 3          | ?          | ?          | 24         | 24           |
-| LSU       | 4          | ?          | ?          | 32         | 32           |
-| LSU       | 5          | ?          | ?          | 40         | 40           |
-| LSU       | 6          | ?          | ?          | 48         | 48           |
-| LSU       | 7          | ?          | ?          | 56         | 56           |
-| LSU       | 8          | ?          | ?          | 64         | 64           |
-| LSU       | 9          | ?          | ?          | 72         | 72           |
-| LSU       | 10         | ?          | ?          | 80         | 80           |
+| HDRV      | 1          | 25         | 20         | 45         | 45           |
+| HDRV      | 2          | 50         | 40         | 90         | 90           |
+| HDRV      | 3          | 75         | 60         | 135        | 135          |
+| HDRV      | 4          | 100        | 80         | 180        | 180          |
+| HDRV      | 5          | 125        | 100        | 225        | 225          |
+| HDRV      | 6          | 150        | 120        | 270        | 270          |
+| HDRV      | 7          | 175        | 140        | 315        | 315          |
+| HDRV      | 8          | 200        | 160        | 360        | 360          |
+| HDRV      | 9          | 225        | 180        | 405        | 405          |
+| HDRV      | 10         | 250        | 200        | 450        | 450          |
+| LAB       | 1          | 6          | 4          | 10         | 10           |
+| LAB       | 2          | 7          | 5          | 12         | 12           |
+| LAB       | 3          | 8          | 6          | 14         | 14           |
+| LAB       | 4          | 9          | 7          | 16         | 16           |
+| LAB       | 5          | 10         | 8          | 18         | 18           |
+| LAB       | 6          | 11         | 9          | 20         | 20           |
+| LAB       | 7          | 12         | 10         | 22         | 22           |
+| LAB       | 8          | 13         | 11         | 24         | 24           |
+| LAB       | 9          | 14         | 12         | 26         | 26           |
+| LAB       | 10         | 15         | 13         | 28         | 28           |
+| LSU       | 1          | 3          | 5          | 8          | 8            |
+| LSU       | 2          | 6          | 10         | 16         | 16           |
+| LSU       | 3          | 9          | 15         | 24         | 24           |
+| LSU       | 4          | 12         | 20         | 32         | 32           |
+| LSU       | 5          | 15         | 25         | 40         | 40           |
+| LSU       | 6          | 18         | 30         | 48         | 48           |
+| LSU       | 7          | 21         | 35         | 56         | 56           |
+| LSU       | 8          | 24         | 40         | 64         | 64           |
+| LSU       | 9          | 27         | 45         | 72         | 72           |
+| LSU       | 10         | 30         | 50         | 80         | 80           |
 | METL      | 0          | N/A        | N/A        | 1          | 0.5          |
-| MINE      | 1          | ?          | ?          | 12         | 12           |
-| MINE      | 2          | ?          | ?          | 14         | 14           |
-| MINE      | 3          | ?          | ?          | 16         | 16           |
-| MINE      | 4          | ?          | ?          | 18         | 18           |
-| MINE      | 5          | ?          | ?          | 20         | 20           |
-| MINE      | 6          | ?          | ?          | 22         | 22           |
-| MINE      | 7          | ?          | ?          | 24         | 24           |
-| MINE      | 8          | ?          | ?          | 26         | 26           |
-| MINE      | 9          | ?          | ?          | 28         | 28           |
-| MINE      | 10         | ?          | ?          | 30         | 30           |
-| MLNC      | 1          | ?          | ?          | 25         | 25           |
-| MLNC      | 2          | ?          | ?          | 50         | 50           |
-| MLNC      | 3          | ?          | ?          | 75         | 75           |
-| MLNC      | 4          | ?          | ?          | 100        | 100          |
-| MLNC      | 5          | ?          | ?          | 125        | 125          |
-| MLNC      | 6          | ?          | ?          | 150        | 150          |
-| MLNC      | 7          | ?          | ?          | 175        | 175          |
-| MLNC      | 8          | ?          | ?          | 200        | 200          |
-| MLNC      | 9          | ?          | ?          | 225        | 225          |
-| MLNC      | 10         | ?          | ?          | 250        | 250          |
-| MRBT      | 1          | ?          | ?          | 22         | 22           |
-| MRBT      | 2          | ?          | ?          | 24         | 24           |
-| MRBT      | 3          | ?          | ?          | 26         | 26           |
-| MRBT      | 4          | ?          | ?          | 28         | 28           |
-| MRBT      | 5          | ?          | ?          | 30         | 30           |
-| MRBT      | 6          | ?          | ?          | 32         | 32           |
-| MRBT      | 7          | ?          | ?          | 34         | 34           |
-| MRBT      | 8          | ?          | ?          | 36         | 36           |
-| MRBT      | 9          | ?          | ?          | 38         | 38           |
-| MRBT      | 10         | ?          | ?          | 40         | 40           |
-| MSSL      | 1          | ?          | ?          | 4          | 4            |
-| MSSL      | 2          | ?          | ?          | 8          | 8            |
-| MSSL      | 3          | ?          | ?          | 12         | 12           |
-| MSSL      | 4          | ?          | ?          | 16         | 16           |
-| MSSL      | 5          | ?          | ?          | 20         | 20           |
-| MSSL      | 6          | ?          | ?          | 24         | 24           |
-| MSSL      | 7          | ?          | ?          | 28         | 28           |
-| MSSL      | 8          | ?          | ?          | 32         | 32           |
-| MSSL      | 9          | ?          | ?          | 36         | 36           |
-| MSSL      | 10         | ?          | ?          | 40         | 40           |
+| MINE      | 1          | 6          | 6          | 12         | 12           |
+| MINE      | 2          | 7          | 7          | 14         | 14           |
+| MINE      | 3          | 8          | 8          | 16         | 16           |
+| MINE      | 4          | 9          | 9          | 18         | 18           |
+| MINE      | 5          | 10         | 10         | 20         | 20           |
+| MINE      | 6          | 11         | 11         | 22         | 22           |
+| MINE      | 7          | 12         | 12         | 24         | 24           |
+| MINE      | 8          | 13         | 13         | 26         | 26           |
+| MINE      | 9          | 14         | 14         | 28         | 28           |
+| MINE      | 10         | 15         | 15         | 30         | 30           |
+| MLNC      | 1          | 15         | 10         | 25         | 25           |
+| MLNC      | 2          | 30         | 20         | 50         | 50           |
+| MLNC      | 3          | 45         | 30         | 75         | 75           |
+| MLNC      | 4          | 60         | 40         | 100        | 100          |
+| MLNC      | 5          | 75         | 50         | 125        | 125          |
+| MLNC      | 6          | 90         | 60         | 150        | 150          |
+| MLNC      | 7          | 105        | 70         | 175        | 175          |
+| MLNC      | 8          | 120        | 80         | 200        | 200          |
+| MLNC      | 9          | 135        | 90         | 225        | 225          |
+| MLNC      | 10         | 150        | 100        | 250        | 250          |
+| MRBT      | 1          | 11         | 11         | 22         | 22           |
+| MRBT      | 2          | 12         | 12         | 24         | 24           |
+| MRBT      | 3          | 13         | 13         | 26         | 26           |
+| MRBT      | 4          | 14         | 14         | 28         | 28           |
+| MRBT      | 5          | 15         | 15         | 30         | 30           |
+| MRBT      | 6          | 16         | 16         | 32         | 32           |
+| MRBT      | 7          | 17         | 17         | 34         | 34           |
+| MRBT      | 8          | 18         | 18         | 36         | 36           |
+| MRBT      | 9          | 19         | 19         | 38         | 38           |
+| MRBT      | 10         | 20         | 20         | 40         | 40           |
+| MSSL      | 1          | 2          | 2          | 4          | 4            |
+| MSSL      | 2          | 4          | 4          | 8          | 8            |
+| MSSL      | 3          | 6          | 6          | 12         | 12           |
+| MSSL      | 4          | 8          | 8          | 16         | 16           |
+| MSSL      | 5          | 10         | 10         | 20         | 20           |
+| MSSL      | 6          | 12         | 12         | 24         | 24           |
+| MSSL      | 7          | 14         | 14         | 28         | 28           |
+| MSSL      | 8          | 16         | 16         | 32         | 32           |
+| MSSL      | 9          | 18         | 18         | 36         | 36           |
+| MSSL      | 10         | 20         | 20         | 40         | 40           |
 | NMTL      | 0          | N/A        | N/A        | 1          | 0.5          |
-| POWR      | 1          | ?          | ?          | 12         | 12           |
-| POWR      | 2          | ?          | ?          | 14         | 14           |
-| POWR      | 3          | ?          | ?          | 16         | 16           |
-| POWR      | 4          | ?          | ?          | 18         | 18           |
-| POWR      | 5          | ?          | ?          | 20         | 20           |
-| POWR      | 6          | ?          | ?          | 22         | 22           |
-| POWR      | 7          | ?          | ?          | 24         | 24           |
-| POWR      | 8          | ?          | ?          | 26         | 26           |
-| POWR      | 9          | ?          | ?          | 28         | 28           |
-| POWR      | 10         | ?          | ?          | 30         | 30           |
-| PROB      | 1          | ?          | ?          | 500        | 500          |
-| PROB      | 2          | ?          | ?          | 250        | 250          |
-| PROB      | 3          | ?          | ?          | 166.7      | 166.7        |
-| PROB      | 4          | ?          | ?          | 125        | 125          |
-| PROB      | 5          | ?          | ?          | 100        | 100          |
-| PROB      | 6          | ?          | ?          | 83.3       | 83.3         |
-| PROB      | 7          | ?          | ?          | 71.4       | 71.4         |
-| PROB      | 8          | ?          | ?          | 62.5       | 62.5         |
-| PROB      | 9          | ?          | ?          | 55.6       | 55.6         |
-| PROB      | 10         | ?          | ?          | 50         | 50           |
-| PRTO      | 1          | ?          | ?          | 1          | 3            |
-| PRTO      | 2          | ?          | ?          | 2          | 6            |
-| PRTO      | 3          | ?          | ?          | 3          | 9            |
-| PRTO      | 4          | ?          | ?          | 4          | 12           |
-| PRTO      | 5          | ?          | ?          | 5          | 15           |
-| PRTO      | 6          | ?          | ?          | 6          | 18           |
-| PRTO      | 7          | ?          | ?          | 7          | 21           |
-| PRTO      | 8          | ?          | ?          | 8          | 24           |
-| PRTO      | 9          | ?          | ?          | 9          | 27           |
-| PRTO      | 10         | ?          | ?          | 10         | 30           |
-| SDRV      | 1          | ?          | ?          | 25         | 25           |
-| SDRV      | 2          | ?          | ?          | 50         | 50           |
-| SDRV      | 3          | ?          | ?          | 75         | 75           |
-| SDRV      | 4          | ?          | ?          | 100        | 100          |
-| SDRV      | 5          | ?          | ?          | 125        | 125          |
-| SDRV      | 6          | ?          | ?          | 150        | 150          |
-| SDRV      | 7          | ?          | ?          | 175        | 175          |
-| SDRV      | 8          | ?          | ?          | 200        | 200          |
-| SDRV      | 9          | ?          | ?          | 225        | 225          |
-| SDRV      | 10         | ?          | ?          | 250        | 250          |
-| SENS      | 1          | ?          | ?          | 3000       | 3000         |
-| SENS      | 2          | ?          | ?          | 6000       | 6000         |
-| SENS      | 3          | ?          | ?          | 9000       | 9000         |
-| SENS      | 4          | ?          | ?          | 12000      | 12000        |
-| SENS      | 5          | ?          | ?          | 15000      | 15000        |
-| SENS      | 6          | ?          | ?          | 18000      | 18000        |
-| SENS      | 7          | ?          | ?          | 21000      | 21000        |
-| SENS      | 8          | ?          | ?          | 24000      | 24000        |
-| SENS      | 9          | ?          | ?          | 27000      | 27000        |
-| SENS      | 10         | ?          | ?          | 30000      | 30000        |
-| STRC      | 1          | ?          | ?          | 0.1        | 0.2          |
-| STRC      | 2          | ?          | ?          | 0.1        | 0.2          |
-| TRNS      | 1          | ?          | ?          | 4          | 4            |
-| TRNS      | 2          | ?          | ?          | 8          | 8            |
-| TRNS      | 3          | ?          | ?          | 12         | 12           |
-| TRNS      | 4          | ?          | ?          | 16         | 16           |
-| TRNS      | 5          | ?          | ?          | 20         | 20           |
-| TRNS      | 6          | ?          | ?          | 24         | 24           |
-| TRNS      | 7          | ?          | ?          | 28         | 28           |
-| TRNS      | 8          | ?          | ?          | 32         | 32           |
-| TRNS      | 9          | ?          | ?          | 36         | 36           |
-| TRNS      | 10         | ?          | ?          | 40         | 40           |
+| POWR      | 1          | 6          | 6          | 12         | 12           |
+| POWR      | 2          | 7          | 7          | 14         | 14           |
+| POWR      | 3          | 8          | 8          | 16         | 16           |
+| POWR      | 4          | 9          | 9          | 18         | 18           |
+| POWR      | 5          | 10         | 10         | 20         | 20           |
+| POWR      | 6          | 11         | 11         | 22         | 22           |
+| POWR      | 7          | 12         | 12         | 24         | 24           |
+| POWR      | 8          | 13         | 13         | 26         | 26           |
+| POWR      | 9          | 14         | 14         | 28         | 28           |
+| POWR      | 10         | 15         | 15         | 30         | 30           |
+| PROB      | 1          | 200        | 300        | 500        | 500          |
+| PROB      | 2          | 100        | 150        | 250        | 250          |
+| PROB      | 3          | 66.7       | 100        | 166.7      | 166.7        |
+| PROB      | 4          | 50         | 75         | 125        | 125          |
+| PROB      | 5          | 40         | 60         | 100        | 100          |
+| PROB      | 6          | 33.3       | 50         | 83.3       | 83.3         |
+| PROB      | 7          | 28.6       | 42.9       | 71.4       | 71.4         |
+| PROB      | 8          | 25         | 37.5       | 62.5       | 62.5         |
+| PROB      | 9          | 22.2       | 33.3       | 55.6       | 55.6         |
+| PROB      | 10         | 20         | 30         | 50         | 50           |
+| PRTO      | 1          | TBD        | TBD        | 1          | 3            |
+| PRTO      | 2          | TBD        | TBD        | 2          | 6            |
+| PRTO      | 3          | TBD        | TBD        | 3          | 9            |
+| PRTO      | 4          | TBD        | TBD        | 4          | 12           |
+| PRTO      | 5          | TBD        | TBD        | 5          | 15           |
+| PRTO      | 6          | TBD        | TBD        | 6          | 18           |
+| PRTO      | 7          | TBD        | TBD        | 7          | 21           |
+| PRTO      | 8          | TBD        | TBD        | 8          | 24           |
+| PRTO      | 9          | TBD        | TBD        | 9          | 27           |
+| PRTO      | 10         | TBD        | TBD        | 10         | 30           |
+| SDRV      | 1          | 15         | 10         | 25         | 25           |
+| SDRV      | 2          | 30         | 20         | 50         | 50           |
+| SDRV      | 3          | 45         | 30         | 75         | 75           |
+| SDRV      | 4          | 60         | 40         | 100        | 100          |
+| SDRV      | 5          | 75         | 50         | 125        | 125          |
+| SDRV      | 6          | 90         | 60         | 150        | 150          |
+| SDRV      | 7          | 105        | 70         | 175        | 175          |
+| SDRV      | 8          | 120        | 80         | 200        | 200          |
+| SDRV      | 9          | 135        | 90         | 225        | 225          |
+| SDRV      | 10         | 150        | 100        | 250        | 250          |
+| SENS      | 1          | 1000       | 2000       | 3000       | 3000         |
+| SENS      | 2          | 2000       | 4000       | 6000       | 6000         |
+| SENS      | 3          | 3000       | 6000       | 9000       | 9000         |
+| SENS      | 4          | 4000       | 8000       | 12000      | 12000        |
+| SENS      | 5          | 5000       | 10000      | 15000      | 15000        |
+| SENS      | 6          | 6000       | 12000      | 18000      | 18000        |
+| SENS      | 7          | 7000       | 14000      | 21000      | 21000        |
+| SENS      | 8          | 8000       | 16000      | 24000      | 24000        |
+| SENS      | 9          | 9000       | 18000      | 27000      | 27000        |
+| SENS      | 10         | 10000      | 20000      | 30000      | 30000        |
+| STRC      | 1          | 0.7        | 0.3        | 1          | 1            |
+| STRC      | 2          | 1.4        | 0.6        | 2          | 2            |
+| STRC      | 3          | 2.1        | 0.9        | 3          | 3            |
+| STRC      | 4          | 2.8        | 1.2        | 4          | 4            |
+| STRC      | 5          | 3.5        | 1.5        | 5          | 5            |
+| STRC      | 6          | 4.2        | 1.8        | 6          | 6            |
+| STRC      | 7          | 4.9        | 2.1        | 7          | 7            |
+| STRC      | 8          | 5.6        | 2.4        | 8          | 8            |
+| STRC      | 9          | 6.3        | 2.7        | 9          | 9            |
+| STRC      | 10         | 7          | 3          | 10         | 10           |
+| STRL      | 1          | 0.07       | 0.03       | 0.1        | 0.1          |
+| STRL      | 2          | 0.14       | 0.06       | 0.2        | 0.2          |
+| STRL      | 3          | 0.21       | 0.09       | 0.3        | 0.3          |
+| STRL      | 4          | 0.28       | 0.12       | 0.4        | 0.4          |
+| STRL      | 5          | 0.35       | 0.15       | 0.5        | 0.5          |
+| STRL      | 6          | 0.42       | 0.18       | 0.6        | 0.6          |
+| STRL      | 7          | 0.49       | 0.21       | 0.7        | 0.7          |
+| STRL      | 8          | 0.56       | 0.24       | 0.8        | 0.8          |
+| STRL      | 9          | 0.63       | 0.27       | 0.9        | 0.9          |
+| STRL      | 10         | 0.7        | 0.3        | 1          | 1            |
+| TRNS      | 1          | 3          | 1          | 4          | 4            |
+| TRNS      | 2          | 6          | 2          | 8          | 8            |
+| TRNS      | 3          | 9          | 3          | 12         | 12           |
+| TRNS      | 4          | 12         | 4          | 16         | 16           |
+| TRNS      | 5          | 15         | 5          | 20         | 20           |
+| TRNS      | 6          | 18         | 6          | 24         | 24           |
+| TRNS      | 7          | 21         | 7          | 28         | 28           |
+| TRNS      | 8          | 24         | 8          | 32         | 32           |
+| TRNS      | 9          | 27         | 9          | 36         | 36           |
+| TRNS      | 10         | 30         | 10         | 40         | 40           |
