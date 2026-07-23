@@ -56,6 +56,17 @@ Population units are not manufactured by Factories. They grow and shrink each tu
 | FARM | Farms     | `4 + TL`   | `2 + TL`   | `6 + TL`           | `6 + TL`           | Yes         |
 | MINE | Mines     | `5 + TL`   | `5 + TL`   | `10 + (2 × TL)`    | `10 + (2 × TL)`    | Yes         |
 
+## Research
+
+LAB and PRTO have Tech Levels 1 through 10. Research Points (RP) are a
+non-physical bookkeeping unit produced by LAB and therefore have no mass or
+volume.
+
+| Code | Unit       | METL Input | NMTL Input | Mass (MU)       | Volume (VU)     | Operational |
+|------|------------|------------|------------|-----------------|-----------------|-------------|
+| LAB  | Laboratory | `8 + TL`   | `4 + TL`   | `12 + (2 × TL)` | `12 + (2 × TL)` | Yes         |
+| PRTO | Prototypes | TBD        | TBD        | `TL`            | `3 × TL`        | No          |
+
 ## Miscellaneous
 
 | Code   | Unit             | METL Input  | NMTL Input  | Mass (MU)    | Volume (VU)  | Operational |
@@ -64,10 +75,14 @@ Population units are not manufactured by Factories. They grow and shrink each tu
 | CSGD   | Consumer Goods   | 0.2         | 0.4         | 0.6          | 1.0          | No          |
 | HDRV   | Hyper Engines    | `25 × TL`   | `20 × TL`   | `45 × TL`    | `60 × TL`    | Yes         |
 | LSU    | Life Support     | `3 × TL`    | `5 × TL`    | `8 × TL`     | `12 × TL`    | Yes         |
+| PROB   | Probes           | TBD         | TBD         | TBD          | TBD          | No          |
 | SENS   | Sensors          | `10 × TL`   | `20 × TL`   | `30 × TL`    | `40 × TL`    | Yes         |
 | SDRV   | Space Drives     | `15 × TL`   | `10 × TL`   | `25 × TL`    | `33 × TL`    | Yes         |
 | STRC   | Structural       | 0.1         | 0.4         | 0.5          | 0.5          | Yes         |
 | TRNS   | Transports       | `3 × TL`    | `1 × TL`    | `4 × TL`     | `6 × TL`     | No          |
+
+PROB has Tech Levels 1 through 10. Its production inputs, mass, and volume are
+not yet specified.
 
 ---
 
