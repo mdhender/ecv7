@@ -5,9 +5,9 @@ unit-specification invariants for the EC v7 domain. It closes acceptance
 criterion 1 of GitHub issue #25 ("Unit code, Tech Level, and combined unit
 specification invariants are defined.").
 
-Parsing and formatting rules, the canonical-reference/grammar reconciliation,
-inventory-key details, and the remaining deferred questions are tracked under
-the other acceptance criteria of #25 and are out of scope here.
+The canonical-reference/grammar reconciliation and the remaining deferred
+questions are tracked under the other acceptance criteria of #25 and are out of
+scope here.
 
 The concrete set of codes and their Tech-Level domains is enumerated in
 [`doc/ec-unit-tables.md`](ec-unit-tables.md): the Units and Classes table lists
@@ -60,8 +60,8 @@ type UnitSpec struct {
   invalid.
 - **US-2 (equality)** Two `UnitSpec` values are equal if and only if their
   `Code` and `TL` are both equal. A TL-0 unit written bare and written with an
-  explicit `-0` denote the same spec `(Code, 0)`. Inventory-key semantics beyond
-  value equality are specified separately.
+  explicit `-0` denote the same spec `(Code, 0)`. Use as an inventory key is
+  specified in §6.
 - **US-3 (non-spec inventory)** Kinds that never carry a Tech Level as a
   specification are not `UnitSpec` values:
   - Population and Cadre units are inventory of `PopulationClass`, not
@@ -138,3 +138,33 @@ TL-bearing with the domain `{1..10}`; `FUEL`, `METL`, and `NMTL` are TL-0; `PRO`
 | `UnitSpec{METL, 0}`        | `METL`    | F-2  | TL-0 spec emits bare form, omitting `-0` |
 | `UnitSpec{FUEL, 0}`        | `FUEL`    | F-2  | TL-0 spec emits bare form                |
 | `PopulationClass` (`PRO`)  | `PRO`     | F-3  | Non-spec kind                            |
+
+## 6. Equality and inventory key
+
+An inventory holds quantities against identities. This section specifies when two
+identities are equal and how each kind of identity is keyed. It complements the
+[numeric-types decision](ec-numeric-types.md), which defines `InventoryUnit`
+(a `UnitSpec` plus a `Quantity`) and places per-unit mass, volume, and assembly
+in `UnitDefinition` rather than in the identity.
+
+- **EQ-1 (equality)** Two `UnitSpec` values are equal if and only if their `Code`
+  and `TL` are both equal (US-2). `UnitCode` is a case-sensitive uppercase
+  mnemonic (UC-3) and `TL` is an integer, so `UnitSpec` is a small comparable
+  value and equality is exact field equality — no normalization at compare time.
+- **IK-1 (spec key)** For TL-bearing and TL-0 units, the `UnitSpec` is itself the
+  inventory key. It is directly usable as a map key; no separate derived key is
+  introduced.
+- **IK-2 (canonical key)** Keys are canonical specs. A TL-0 unit written bare and
+  written with an explicit `-0` resolve to the same spec `(Code, 0)` (P-2, US-2)
+  and therefore to a single key: `METL` and `METL-0` are one inventory line, not
+  two. Text is normalized to a spec (§4) before it is used as a key.
+- **IK-3 (non-spec keys)** Kinds that are not `UnitSpec` (US-3) are keyed by their
+  own identity, never by a fabricated `(Code, TL)`:
+  - `PopulationClass` units (Population and Cadre) are keyed by their class code
+    (`PRO`, `SOL`, `WRKR`, …).
+  - Research Points (`RP`) are a single scalar balance, not a keyed inventory
+    line.
+- **IK-4 (state is not identity)** An entity may hold both stored and assembled
+  quantities of the same `UnitSpec`. The stored/assembled distinction is a
+  separate dimension of the inventory line, not part of `UnitSpec` equality or
+  the key; its final shape is owned by issue #26.
