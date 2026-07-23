@@ -45,6 +45,7 @@
 | TRNS      | Transport           | Transportation |
 | UEM       | Unemployables       | Living         |
 | USK       | Unskilled Workers   | Living         |
+| WRKR      | Worker              | Cadre          |
 
 ## Unit Inputs
 
@@ -188,6 +189,7 @@ Operational Units must be assembled prior to being used.
 | TRNS      | 1 professional / 10 and 0.1 x TL^2 fuel                                | Transports 20 x TL^2 Mass; In Combat = 3 x TL^2 Mass                                 |
 | UEM       | Food and Consumer Goods                                                | Population growth occurs in this category                                            |
 | USK       | Food and Consumer Goods                                                | Provide labor to operate certain assembled items                                     |
+| WRKR      | N/A                                                                    | PRO and USK units allocated to a FACT, FARM, or MINE                                 |
 
 ## Draft: Unit-Definition Catalog (from #25)
 
@@ -207,7 +209,8 @@ Generation rules applied:
 
 - Resource units (`FUEL`, `METL`, `NMTL`) and `FOOD` have only a TL0 row.
 - Living/Population (`PRO`, `SOL`, `UEM`, `USK`) and Cadre (`CNST`, `POL`,
-  `RBL`, `SPAG`, `SPY`, `TRNE`) entries are `PopulationClass`, not `UnitSpec`,
+  `RBL`, `SPAG`, `SPY`, `TRNE`, `WRKR`) entries are `PopulationClass`, not
+  `UnitSpec`,
   and have no rows.
 - `RP` is a non-physical bookkeeping unit and has no row.
 - All remaining units have TL1–TL10 rows, except `CSGD` and `CSUP` (TL0 only).

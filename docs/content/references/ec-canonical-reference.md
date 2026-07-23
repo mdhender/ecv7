@@ -135,18 +135,14 @@ resolving the bootstrap dependency on Factories to produce Factories.
 
 ## 4. Units
 
-Units are installed inside Entities. There are five categories of Units:
-**Natural Resources**, **Population**, **Cadre**, **Weapons**, and **Production**.
+Units are installed inside Entities. Each unit belongs to one **Class**; the
+Classes are listed below.
 
 > **TL Notation:** All Production Units carry a `-TL` suffix (0–10), e.g. `FACT-3`,
-> `MINE-7`. By convention, TL 0 units may omit the suffix (`MSUP` and `MSUP-0` are
-> both valid).
+> `MINE-7`. By convention, TL 0 units may omit the suffix (`CSUP` and `CSUP-0` are
+> both valid). `FACT`, `FARM`, and `MINE` always require the `-TL` suffix.
 
-### 4.1 Natural Resources
-
-Natural Resources are extracted from planetary Deposits by MINE-TL units and
-stored as inventory within an Entity. They are consumed by Factories, Farms, and
-drives.
+### 4.1 Resource
 
 | Code | Name          | Description                                |
 |------|---------------|--------------------------------------------|
@@ -154,229 +150,192 @@ drives.
 | METL | Metallics     | All metallic substances                    |
 | NMTL | Non-Metallics | All non-metallic substances                |
 
-### 4.2 Population Units
+### 4.2 Commodity
 
-Population Units represent the people living aboard an Entity. They are not
-produced by Factories; instead they grow and shrink each Turn through demographic
-and environmental forces.
+| Code | Name           | Description                                                                                   |
+|------|----------------|-----------------------------------------------------------------------------------------------|
+| CSGD | Consumer Goods | Produced by FACT; used to pay the population                                                  |
+| FOOD | Food           | Produced by FARM; consumed by all Population Units (¼ FOOD unit per population unit per Turn) |
 
-| Code | Name          | Description                                                                               |
-|------|---------------|-------------------------------------------------------------------------------------------|
-| USK  | Unskilled     | Workers not requiring long training; provide Labor alongside PRO                          |
-| PRO  | Professionals | Workers requiring long apprenticeships or extensive training; provide Labor alongside USK |
-| SOL  | Soldiers      | All military personnel; required for combat                                               |
-| UEM  | Unemployables | Non-working population: children, the elderly, pregnant females, combat casualties        |
+### 4.3 Living
+
+| Code | Name              | Description                                                                               |
+|------|-------------------|-------------------------------------------------------------------------------------------|
+| USK  | Unskilled Workers | Workers not requiring long training; provide Labor alongside PRO                          |
+| PRO  | Professionals     | Workers requiring long apprenticeships or extensive training; provide Labor alongside USK |
+| SOL  | Soldiers          | All military personnel; required for combat                                               |
+| UEM  | Unemployables     | Non-working population: children, the elderly, pregnant females, combat casualties        |
 
 #### Population Dynamics
-Each Turn the game engine adjusts Population Unit quantities via:
-
-| Factor               | Effect                                                  |
-|----------------------|---------------------------------------------------------|
-| Birth Rate           | Increases population; derived from Entity SOL attribute |
-| Death Rate           | Decreases population; derived from Entity SOL attribute |
-| Combat Damage        | Decreases population                                    |
-| Starvation           | Decreases population (insufficient FOOD)                |
-| Life Support Failure | Decreases population (SHIP-TL, CENC-TL, CORB-TL only)   |
+Each Turn the game engine adjusts Population Unit quantities via Birth Rate and
+Death Rate (both derived from the Entity's SOL attribute), Combat Damage,
+Starvation (insufficient FOOD), and Life Support Failure (SHIP-TL, CENC-TL, and
+CORB-TL only).
 
 #### Standard of Living (SOL)
 SOL is a per-Entity attribute calculated each Turn by the game engine. It drives
-Birth Rate and Death Rate and reflects a broader measure of population wellbeing
-than simple morale.
-
-Birth Rate increases are based on the amount of habitable land unpopulated, and
-inversely on the SOL.
+Birth Rate and Death Rate and reflects population wellbeing. Birth Rate increases
+with unpopulated habitable land and inversely with SOL.
 
 #### Labor
-FACT-TL, FARM-TL, and MINE-TL units require **Labor** to operate. Labor is drawn
-from the **WRKR** Cadre, which is populated by allocating USK and PRO Population
-Units. Labor is allocated, not consumed — WRKR units are reserved for the duration
-of the Turn but the underlying Population Units are not destroyed.
+FACT, FARM, and MINE units require **Labor** to operate, drawn from the WRKR
+Cadre (populated by allocating USK and PRO). Labor is allocated, not consumed —
+WRKR units are reserved for the Turn but the underlying Population Units are not
+destroyed.
 
-*Example: an Entity with 10 USK/PRO assigned to WRKR, one FACT requiring 8 Labor,
-and one FACT requiring 3 Labor can only fully staff one Factory per Turn.*
+### 4.4 Cadre
 
-### 4.3 Cadre Units
+Cadre units are derived counts — Population Units temporarily assigned to a role.
+Assigning Population Units to a Cadre allocates them for the Turn. **RBL is the
+sole exception:** it counts population willing to rebel without allocating the
+underlying units.
 
-Cadre units are derived counts — they represent Population Units temporarily
-assigned to a specific role. Assigning Population Units to a Cadre allocates those
-units, making them unavailable for other uses that Turn.
+| Code | Name                | Description                                                                  |
+|------|---------------------|------------------------------------------------------------------------------|
+| CNST | Construction Worker | Execute assembly and disassembly orders                                      |
+| POL  | Police              | Keep the peace and suppress rebellion by arresting rebels                    |
+| RBL  | Rebel               | Count of population willing to rebel; does not allocate the underlying units |
+| SPAG | Special Agent       | Infiltrate rebel population sectors and assist Police in locating rebels     |
+| SPY  | Spy                 | Report on other Factions and incite rebellion                                |
+| TRNE | Trainee             | Unskilled workers in training toward professional status                     |
+| WRKR | Worker              | PRO and USK units allocated to a FACT, FARM, or MINE                         |
 
-**RBL is the sole exception:** it counts population willing to rebel but does not
-allocate those units. Population Units counted in RBL remain available for other
-assignments in the same Turn.
+### 4.5 Ammunition
 
-| Code | Name         | Description                                                                  |
-|------|--------------|------------------------------------------------------------------------------|
-| CNST | Construction | Execute assembly and disassembly orders                                      |
-| RBL  | Rebels       | Count of population willing to rebel; does not allocate the underlying units |
-| SPY  | Spies        | Report on other Factions and incite rebellion                                |
-| TRNE | Trainees     | Unskilled workers in training toward professional status                     |
-| WRKR | Workers      | PRO and USK units allocated to a FACT, FARM, or MINE                         |
+| Code | Name            | Description                                                                    |
+|------|-----------------|--------------------------------------------------------------------------------|
+| AMSL | Anti-Missile    | Launched by MLNC to destroy incoming MSSL                                      |
+| CSUP | Combat Supplies | Ammunition and medicines; consumed in combat (1 unit per SOL per combat round) |
+| MSSL | Missile         | Used in any combat; less accurate than energy weapons                          |
 
-### 4.4 Weapons Units
+### 4.6 Weaponry
 
-Weapons units are used in combat. All weapons units are Production Units
-(manufactured by FACT-TL) unless noted otherwise.
+| Code | Name             | Description                                                            |
+|------|------------------|------------------------------------------------------------------------|
+| ACFT | Assault Craft    | Land/space vehicles used to invade Colonies or Ships                   |
+| AWPN | Assault Weapons  | Used by SOL on a planet's surface                                      |
+| ESHD | Energy Shield    | Deflect energy beams                                                   |
+| EWPN | Energy Weapon    | Concentrated energy beam; used in all combat except surface-to-surface |
+| MLNC | Missile Launcher | Launch MSSL; accuracy depends on launcher TL                           |
+| MRBT | Military Robot   | Replace SOL units (TL × 2 soldiers per MRBT unit)                      |
 
-| Code | Name              | Description                                                                    |
-|------|-------------------|--------------------------------------------------------------------------------|
-| EWPN | Energy Weapons    | Concentrated energy beam; used in all combat except surface-to-surface         |
-| ESHD | Energy Shields    | Deflect energy beams                                                           |
-| MSSL | Missiles          | Used in any combat; less accurate than energy weapons                          |
-| MLNC | Missile Launchers | Launch MSSL; accuracy depends on launcher TL                                   |
-| AMSL | Anti-Missiles     | Launched by MLNC to destroy incoming MSSL                                      |
-| ACFT | Assault Craft     | Land/space vehicles used to invade Colonies or Ships                           |
-| AWPN | Assault Weapons   | Used by SOL on a planet's surface                                              |
-| MRBT | Military Robots   | Replace SOL units (TL × 2 soldiers per MRBT unit)                              |
-| MSUP | Military Supplies | Ammunition and medicines; consumed in combat (1 unit per SOL per combat round) |
+### 4.7 Infrastructure
 
-### 4.5 Production Units
-
-Production Units are manufactured by FACT-TL (all except FOOD) or FARM-TL (FOOD
-only), using Natural Resources and Labor.
-
-#### Agriculture
-| Code    | Name | Description                                                                                      |
-|---------|------|--------------------------------------------------------------------------------------------------|
-| FARM-TL | Farm | Produces FOOD. TL 1: open-colony; TL 2–5: hydroponic; TL 6–10: artificial-sunlight hydroponic..  |
-| FOOD    | Food | Produced by FARM-TL; consumed by all Population Units (¼ FOOD unit per population unit per Turn) |
+| Code | Name        | Description                                                                                   |
+|------|-------------|-----------------------------------------------------------------------------------------------|
+| AUTO | Automation  | Replaces USK workers in FACT, FARM, or MINE (unit × TL = worker units replaced)               |
+| BMR  | Beamer      | Beams mass between Entities (5000 × TL² MU per use); 1 PRO per 25 Beamers                     |
+| FACT | Factory     | Manufactures all units except Natural Resources, FOOD, and Population                         |
+| FARM | Farm        | Produces FOOD. TL 1: open-colony; TL 2–5: hydroponic; TL 6–10: artificial-sunlight hydroponic |
+| LAB  | Laboratory  | Generates Research Points (RPs) each Turn                                                     |
+| MINE | Mine        | Extracts and refines Natural Resources from Deposits                                          |
+| POWR | Power Plant | Produces TL Power per Turn (hydroelectric); Open Surface Colonies only                        |
 
 Notes:
 
 * FARM-1 may only be assembled in COPN on planets with Habitability > 0 and within orbits 1 through 5.
 * FARM-2 through FARM-5 may only be assembled in CENC or CORB within orbits 1 through 5.
 * FARM-6 through FARM-10 may be assembled on CENC, CORB, or SHIP in any orbit.
-
-#### Extraction
-| Code    | Name | Description                                          |
-|---------|------|------------------------------------------------------|
-| MINE-TL | Mine | Extracts and refines Natural Resources from Deposits |
-
-Notes:
-
 * MINE may only be assembled in COPN.
+* FACT and FARM-2 through FARM-5 require no FUEL to operate when assembled in CORB within orbits 1 through 5.
 
-#### Industry
-| Code    | Name           | Description                                                                     |
-|---------|----------------|---------------------------------------------------------------------------------|
-| FACT-TL | Factory        | Manufactures all units except Natural Resources, FOOD, and Population           |
-| AUTO-TL | Automation     | Replaces USK workers in FACT, FARM, or MINE (unit × TL = worker units replaced) |
-| CSGD-TL | Consumer Goods | Produced by FACT; used to pay the population                                    |
+### 4.8 Technology
 
-#### Research
-| Code    | Name            | Description                                      |
-|---------|-----------------|--------------------------------------------------|
-| LAB-TL  | Laboratory      | Generates Research Points (RPs) each Turn        |
-| RP      | Research Points | Currency for TL advancement; not a physical unit |
-| PRTO-TL | Prototypes      | Used to transfer Tech Levels between Entities    |
+| Code | Name           | Description                                      |
+|------|----------------|--------------------------------------------------|
+| PRTO | Prototype      | Used to transfer Tech Levels between Entities    |
+| RP   | Research Point | Currency for TL advancement; not a physical unit |
 
-#### Movement
-| Code    | Name        | Description                                                                                       |
-|---------|-------------|--------------------------------------------------------------------------------------------------|
-| SDRV-TL | Space Drive | Maintains orbit and maneuvers in combat; cannot be used for interplanetary or interstellar travel |
-| HDRV-TL | Hyper Drive | Propels Ships through hyperspace; jump range = 1 light-year × TL                                  |
-| TRNS-TL | Transports  | Transfer Population and materials between Ships/Colonies at the same Planet (see [§7]({{< ref "#7-transports-trns" >}}))              |
+### 4.9 Propulsion
 
-#### Support & Infrastructure
-| Code    | Name         | Description                                                                                               |
-|---------|--------------|-----------------------------------------------------------------------------------------------------------|
-| LSU-TL  | Life Support | Recycles air and water; required on SHIP-TL, CENC-TL, and CORB-TL (supports TL² population units per LSU) |
-| SENS-TL | Sensors      | Detect Ships and Colonies in orbit; conduct probes (1 × TL probes per Turn)                               |
-| PROB-TL | Probes       | Executed by SENS; report on Ships, Colonies, and Deposits in the same System                              |
-| STRC-TL | Structural   | Required to build Ships and Colonies                                                                      |
+| Code | Name        | Description                                                                                       |
+|------|-------------|---------------------------------------------------------------------------------------------------|
+| HDRV | Hyper Drive | Propels Ships through hyperspace; jump range = 1 light-year × TL                                  |
+| SDRV | Space Drive | Maintains orbit and maneuvers in combat; cannot be used for interplanetary or interstellar travel |
+
+### 4.10 Recon
+
+| Code | Name   | Description                                                                  |
+|------|--------|------------------------------------------------------------------------------|
+| PROB | Probe  | Executed by SENS; report on Ships, Colonies, and Deposits in the same System |
+| SENS | Sensor | Detect Ships and Colonies in orbit; conduct probes (1 × TL probes per Turn)  |
+
+### 4.11 Static
+
+| Code | Name         | Description                                                                                               |
+|------|--------------|-----------------------------------------------------------------------------------------------------------|
+| LSU  | Life Support | Recycles air and water; required on SHIP-TL, CENC-TL, and CORB-TL (supports TL² population units per LSU) |
+
+### 4.12 Structural
+
+| Code | Name            | Description                                                                                              |
+|------|-----------------|----------------------------------------------------------------------------------------------------------|
+| STRC | Structure       | Required to build Ships and Colonies; encloses (1 × TL²) ÷ structural requirement (based on Entity type) |
+| STRL | Light Structure | Light structural variant of STRC at one-tenth the mass, volume, and cost                                 |
 
 Notes:
 
-* STRC-1 may only be built in COPN or CENC.
-* STRC-2 through STRC-10 may only be built in CORB.
+* STRC may be built in COPN, CENC, or CORB.
+* STRL may only be built in CORB.
 
-#### Solar Power
-The following units require no FUEL to operate when assembled in CORB within orbits 1 through 5:
+### 4.13 Transportation
 
-* FACT
-* FARM-2 through FARM-5
+| Code | Name      | Description                                                                                                              |
+|------|-----------|--------------------------------------------------------------------------------------------------------------------------|
+| TRNS | Transport | Transfer Population and materials between Ships/Colonies at the same Planet (see [§7]({{< ref "#7-transports-trns" >}})) |
 
 ---
 
-## 5. Mass & Volume
+## 5. Mass, Volume & Inputs
 
-**Definitions:**
-- **Mass (MU):** Physical mass in mass units.
-  Where not explicitly stated, derived as the sum of METL + NMTL inputs.
-- **Volume (VU):** Storage volume in volume units. Defaults to Mass (MU) unless
-  otherwise specified.
-- **Operational:** Unit must be assembled before it can be used; dis-assembly is
-  required before transfer.
-- **TL:** Technological level of the unit (0–10).
+**Definitions:** Mass and Volume are in mass units (MU) and volume units (VU).
+**Volume** is the assembled/operational volume; **Volume Stowed** is the
+dis-assembled storage volume. **METL/NMTL Input** is the build cost. An
+**Operational** "Yes" means the unit must be assembled before use. `TBD` marks
+values not yet specified.
 
-### 5.1 Natural Resources & Food
+Population and Cadre units are not manufactured: each is 1 MU and 1 VU and can
+never be stowed. Research Points (`RP`) are non-physical: 0 MU, 0 VU.
 
-Natural resources are extracted by Mines; Food is produced by Farms. No METL/NMTL
-input costs apply.
+| Class          | Code | Unit             | METL In         | NMTL In        | Mass            | Volume          | Stowed          | Op. |
+|----------------|------|------------------|-----------------|----------------|-----------------|-----------------|-----------------|-----|
+| Resource       | FUEL | Fuel             | —               | —              | 1               | 0.5             | 0.5             | No  |
+| Resource       | METL | Metallics        | —               | —              | 1               | 0.5             | 0.5             | No  |
+| Resource       | NMTL | Non-Metallics    | —               | —              | 1               | 0.5             | 0.5             | No  |
+| Commodity      | CSGD | Consumer Goods   | 0.2             | 0.4            | 0.6             | 0.3             | 0.3             | No  |
+| Commodity      | FOOD | Food             | —               | —              | 6               | 3               | 3               | No  |
+| Ammunition     | AMSL | Anti-Missile     | 2 × TL          | 2 × TL         | 4 × TL          | 4 × TL          | 2 × TL          | No  |
+| Ammunition     | CSUP | Combat Supplies  | 0.02            | 0.02           | 0.04            | 0.04            | 0.04            | No  |
+| Ammunition     | MSSL | Missile          | 2 × TL          | 2 × TL         | 4 × TL          | 4 × TL          | 4 × TL          | No  |
+| Weaponry       | ACFT | Assault Craft    | 3 × TL          | 2 × TL         | 5 × TL          | 5 × TL          | 2.5 × TL        | No  |
+| Weaponry       | AWPN | Assault Weapons  | 1 × TL          | 1 × TL         | 2 × TL          | 2 × TL          | 1 × TL          | No  |
+| Weaponry       | ESHD | Energy Shield    | 10 × TL         | 10 × TL        | 20 × TL         | 20 × TL         | 10 × TL         | Yes |
+| Weaponry       | EWPN | Energy Weapon    | 5 × TL          | 5 × TL         | 10 × TL         | 10 × TL         | 5 × TL          | Yes |
+| Weaponry       | MLNC | Missile Launcher | 15 × TL         | 10 × TL        | 25 × TL         | 25 × TL         | 12.5 × TL       | Yes |
+| Weaponry       | MRBT | Military Robot   | TL + 10         | TL + 10        | 2 × (TL + 10)   | 2 × (TL + 10)   | TL + 10         | No  |
+| Infrastructure | AUTO | Automation       | 2 × TL          | 2 × TL         | 4 × TL          | 4 × TL          | 2 × TL          | Yes |
+| Infrastructure | BMR  | Beamer           | 10 × (TL + 210) | 30 × TL + 2500 | 40 × (TL + 115) | 40 × (TL + 115) | 20 × (TL + 115) | Yes |
+| Infrastructure | FACT | Factory          | TL + 8          | 4 + TL         | 2 × (TL + 6)    | 2 × (TL + 6)    | TL + 6          | Yes |
+| Infrastructure | FARM | Farm             | TL + 4          | 2 + TL         | 2 × (TL + 3)    | 2 × (TL + 3)    | TL + 3          | Yes |
+| Infrastructure | LAB  | Laboratory       | TL + 5          | TL + 3         | 2 × TL + 8      | 2 × TL + 8      | TL + 4          | Yes |
+| Infrastructure | MINE | Mine             | TL + 5          | TL + 5         | 2 × (TL + 5)    | 2 × (TL + 5)    | TL + 5          | Yes |
+| Infrastructure | POWR | Power Plant      | TL + 5          | TL + 5         | 2 × (TL + 5)    | 2 × (TL + 5)    | TL + 5          | Yes |
+| Technology     | PRTO | Prototype        | TBD             | TBD            | TL              | 3 × TL          | 3 × TL          | No  |
+| Propulsion     | HDRV | Hyper Drive      | 25 × TL         | 20 × TL        | 45 × TL         | 45 × TL         | 22.5 × TL       | Yes |
+| Propulsion     | SDRV | Space Drive      | 15 × TL         | 10 × TL        | 25 × TL         | 25 × TL         | 12.5 × TL       | Yes |
+| Recon          | PROB | Probe            | 200/TL          | 300/TL         | 500/TL          | 500/TL          | 500/TL          | No  |
+| Recon          | SENS | Sensor           | 1000 × TL       | 2000 × TL      | 3000 × TL       | 3000 × TL       | 1500 × TL       | Yes |
+| Static         | LSU  | Life Support     | 3 × TL          | 5 × TL         | 8 × TL          | 8 × TL          | 4 × TL          | Yes |
+| Structural     | STRC | Structure        | 0.7 × TL        | 0.3 × TL       | 1 × TL          | 1 × TL          | 1 × TL          | Yes |
+| Structural     | STRL | Light Structure  | 0.07 × TL       | 0.03 × TL      | 0.1 × TL        | 0.1 × TL        | 0.1 × TL        | Yes |
+| Transportation | TRNS | Transport        | 3 × TL          | 1 × TL         | 4 × TL          | 4 × TL          | 4 × TL          | No  |
 
-| Code | Unit          | Source | Mass (MU) | Volume (VU) | Operational |
-|------|---------------|--------|-----------|-------------|-------------|
-| FUEL | Fuel          | Mined  | 1         | 1           | No          |
-| METL | Metallics     | Mined  | 1         | 0.5         | No          |
-| NMTL | Non-Metallics | Mined  | 1         | 0.5         | No          |
-| FOOD | Food          | Farmed | 1         | 6           | No          |
+### 5.1 Notes
 
-### 5.2 Population Units
-
-Population units are not manufactured. By definition, 1 Population Unit is 1 MU.
-
-| Code | Unit              | Mass (MU) | Volume (VU) | Operational |
-|------|-------------------|-----------|-------------|-------------|
-| UEM  | Unemployables     | 1         | 1           | No          |
-| USK  | Unskilled Workers | 1         | 1           | No          |
-| PRO  | Professionals     | 1         | 1           | No          |
-| SOL  | Soldiers          | 1         | 1           | No          |
-
-### 5.3 Weapons
-
-| Code | Unit              | METL Input | NMTL Input | Mass (MU)       | Volume (VU)     | Operational |
-|------|-------------------|------------|------------|-----------------|-----------------|-------------|
-| AWPN | Assault Weapons   | `1 × TL`   | `1 × TL`   | `2 × TL`        | 20              | No          |
-| ACFT | Assault Craft     | `3 × TL`   | `2 × TL`   | `5 × TL`        | `5 × TL`        | No          |
-| AMSL | Anti-Missiles     | `2 × TL`   | `2 × TL`   | `4 × TL`        | `4 × TL`        | No          |
-| ESHD | Energy Shields    | `25 × TL`  | `25 × TL`  | `50 × TL`       | `50 × TL`       | Yes         |
-| EWPN | Energy Weapons    | `5 × TL`   | `5 × TL`   | `10 × TL`       | `10 × TL`       | Yes         |
-| MRBT | Military Robots   | `10 + TL`  | `10 + TL`  | `(2 × TL) + 20` | `(2 × TL) + 20` | No          |
-| MSUP | Military Supplies | 0.02       | 0.02       | 0.04            | 0.04            | No          |
-| MSSL | Missiles          | `2 × TL`   | `2 × TL`   | `4 × TL`        | `4 × TL`        | No          |
-| MLNC | Missile Launchers | `15 × TL`  | `10 × TL`  | `25 × TL`       | `25 × TL`       | Yes         |
-
-### 5.4 Production
-
-| Code | Unit      | METL Input | NMTL Input | Mass (MU)       | Volume (VU)     | Operational |
-|------|-----------|------------|------------|-----------------|-----------------|-------------|
-| FACT | Factories | `8 + TL`   | `4 + TL`   | `12 + (2 × TL)` | `12 + (2 × TL)` | Yes         |
-| FARM | Farms     | `4 + TL`   | `2 + TL`   | `6 + TL`        | `6 + TL`        | Yes         |
-| MINE | Mines     | `5 + TL`   | `5 + TL`   | `10 + (2 × TL)` | `10 + (2 × TL)` | Yes         |
-
-### 5.5 Miscellaneous & Infrastructure
-
-| Code | Unit           | METL Input | NMTL Input | Mass (MU) | Volume (VU) | Operational |
-|------|----------------|------------|------------|-----------|-------------|-------------|
-| AUTO | Automation     | `2 × TL`   | `2 × TL`   | `4 × TL`  | `4 × TL`    | Yes         |
-| CSGD | Consumer Goods | 0.2        | 0.4        | 0.6       | 1.0         | No          |
-| HDRV | Hyper Engines  | `25 × TL`  | `20 × TL`  | `45 × TL` | `60 × TL`   | Yes         |
-| LSU  | Life Support   | `3 × TL`   | `5 × TL`   | `8 × TL`  | `12 × TL`   | Yes         |
-| SENS | Sensors        | `10 × TL`  | `20 × TL`  | `30 × TL` | `40 × TL`   | Yes         |
-| SDRV | Space Drives   | `15 × TL`  | `10 × TL`  | `25 × TL` | `33 × TL`   | Yes         |
-| STRC | Structural     | 0.1        | 0.4        | 0.5       | 0.5         | Yes         |
-| TRNS | Transports     | `3 × TL`   | `1 × TL`   | `4 × TL`  | `6 × TL`    | No          |
-
-### 5.6 Derivation Rules & Notes
-
-- **Mass derivation:** where mass is not explicitly stated, mass = METL + NMTL inputs.
-- **Volume derivation:** volume defaults to mass unless a distinct value is specified.
-- **Operational units** must be assembled after being taken out of storage to
-  function: Space Drives, Sensors, Automation, Life Support, Energy Weapons, Energy
-  Shields, Mines, Factories, Farms, Hyper Engines, Structural, Missile Launchers.
-- **Storage vs. operational volume:** Units in storage count as ½ their mass for
-  structural housing purposes. The VU column above does not distinguish storage
-  from operational volume (see [§12]({{< ref "#12-areas-not-yet-specified" >}})).
+* **Storage vs. operational volume:** the Volume Stowed column gives the
+  dis-assembled storage volume; the Volume column gives the assembled volume.
+* Natural Resources (FUEL, METL, NMTL) and FOOD have no METL/NMTL build cost;
+  they are extracted or farmed.
 
 ---
 
@@ -420,7 +379,7 @@ same Planet. They carry no armament.
 | METL Input  | `3 × TL` | 6              |
 | NMTL Input  | `1 × TL` | 2              |
 | Mass (MU)   | `4 × TL` | 8              |
-| Volume (VU) | `6 × TL` | 12             |
+| Volume (VU) | `4 × TL` | 8              |
 | Operational | No       | —              |
 
 ### 7.2 Throughput vs. Capacity
@@ -431,7 +390,7 @@ capacity:
 > **TL² × 200 MU per turn**
 
 The throughput is achieved by repeated trips within the turn, each carrying up to
-the transport's physical volume (~12 VU for a TRNS-2), rather than a single lift.
+the transport's physical volume (8 VU for a TRNS-2), rather than a single lift.
 
 **Combat operations** — only a single trip is possible per round:
 
@@ -441,10 +400,10 @@ One load, one run.
 
 ### 7.3 Worked Examples
 
-- **TRNS-2 moving 800 USK:** 800 VU of cargo ÷ 12 VU batch ≈ **67 trips**, all
+- **TRNS-2 moving 800 USK:** 800 VU of cargo ÷ 8 VU batch = **100 trips**, all
   within one turn → 800 MU/turn throughput. In combat: `3 × 2 = 6 MU` per round.
 - **TRNS-10 moving 20,000 USK:** throughput `10² × 200 = 20,000 MU/turn`;
-  20,000 VU ÷ 60 VU batch ≈ **333 trips**. In combat: `3 × 10 = 30 MU` per round.
+  20,000 VU ÷ 40 VU batch = **500 trips**. In combat: `3 × 10 = 30 MU` per round.
 
 ### 7.4 Crew & Fuel
 
