@@ -59,6 +59,13 @@ Values that scale with a unit's Tech Level are written as expressions in `TL`
 Abbreviations: **TL** = Tech Level (integer 0–10) · **MU** = Mass Unit ·
 **VU** = Volume Unit · **TBD** = not yet specified.
 
+**Stowability.** Every unit except Population and Cadre can be stowed; each such
+unit lists its dis-assembled storage volume in the **Volume Stowed** column.
+Population and Cadre can never be stowed — they show `—` and are always carried at
+their full 1 VU. Units that must be assembled to operate (**Assembled?** = `yes`)
+are stowed while unassembled and, like all stowable units, must be in the stowed
+(unassembled) state to be transferred.
+
 ---
 
 ## 3. Units

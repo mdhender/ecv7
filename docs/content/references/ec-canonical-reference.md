@@ -284,6 +284,58 @@ Notes:
 |------|-----------|--------------------------------------------------------------------------------------------------------------------------|
 | TRNS | Transport | Transfer Population and materials between Ships/Colonies at the same Planet (see [§7]({{< ref "#7-transports-trns" >}})) |
 
+### 4.14 Unit State
+
+Within an Entity's inventory, a unit that requires assembly is held in one of two
+states:
+
+- **Unassembled** — the unit is not operating and provides no per-Turn function.
+  Units are manufactured, transferred, bought, and carried in this state.
+- **Assembled** — the unit has been assembled into operating form (via an
+  `ASSEMBLE` order, [§11.4]({{< ref "#114-assembly-orders" >}})) and provides its
+  function each Turn.
+
+Only units whose **Assembled?** value is `yes` (the **Op.** column in
+[§5]({{< ref "#5-mass-volume--inputs" >}})) have an assembled state. Every other
+unit — resources, commodities, ammunition, population, and cadre — is always
+unassembled. An Entity may hold both unassembled and assembled quantities of the
+same unit specification at once; the two counts are tracked separately.
+
+Two rules follow:
+
+- **Factory output is unassembled.** Units manufactured by a FACT are produced in
+  the **unassembled** state. Assembling them into operating form requires a
+  separate `ASSEMBLE` order;
+  `DISASSEMBLE` ([§11.5]({{< ref "#115-dis-assembly-orders" >}})) returns an
+  assembled unit to the unassembled state.
+- **Transfer requires the unassembled state.** Only unassembled units may be moved
+  by `TRANSFER` ([§11.7]({{< ref "#117-transfer-orders" >}})) or a
+  `SETUP … TRANSFER` block ([§11.3]({{< ref "#113-set-up-orders" >}})). An
+  assembled, operating unit cannot be transferred; it must be dis-assembled first.
+
+### 4.15 Production Groups
+
+Assembled FACT, FARM, and MINE units are organized into **groups**. A group is
+created by an `ASSEMBLE` order ([§11.4]({{< ref "#114-assembly-orders" >}})) and is
+operated as a unit: a Factory group builds one product, a Mine group works one
+Deposit, a Farm group produces FOOD.
+
+Each group is assigned a **group number** (`groupNo`) when it is created. Group
+numbers are:
+
+- **sequential** — assigned in increasing order as groups are created;
+- **unique per (Faction, Planet)** — a number identifies exactly one group among a
+  Faction's holdings at a given Planet; and
+- **never reused** — once assigned, a number is never reassigned, even after its
+  group is dis-assembled or destroyed.
+
+This mirrors the numbering of Deposits ([§1.4]({{< ref "#14-planet" >}})):
+identifiers are stable, sequential, and permanent, so an order in a later Turn
+names the same group unambiguously. Later orders address a group by its number —
+`BUILDCHANGE` retools a Factory group ([§11.6]({{< ref "#116-build-change-orders" >}}))
+and `MININGCHANGE` redirects a Mine group
+([§11.8]({{< ref "#118-mining-change-orders" >}})).
+
 ---
 
 ## 5. Mass, Volume & Inputs
@@ -334,6 +386,9 @@ never be stowed. Research Points (`RP`) are non-physical: 0 MU, 0 VU.
 
 * **Storage vs. operational volume:** the Volume Stowed column gives the
   dis-assembled storage volume; the Volume column gives the assembled volume.
+* **Stowability:** every unit except Population and Cadre can be stowed. A
+  stowable unit lists a Volume Stowed; Population and Cadre show `—` and are
+  always carried at their full 1 VU (they can never be stowed).
 * Natural Resources (FUEL, METL, NMTL) and FOOD have no METL/NMTL build cost;
   they are extracted or farmed.
 
@@ -601,7 +656,7 @@ and gives the parser a reliable sync point at the start of each line.
 | `playerID`   | Player ID (integer)                          |
 | `systemID`   | System ID (integer)                          |
 | `locationID` | Planet ID (integer) or System ID (integer)   |
-| `groupNo`    | Factory or mine group number (integer)       |
+| `groupNo`    | Production group number (FACT, FARM, or MINE); sequential and unique per Faction and Planet, see [§4.15]({{< ref "#415-production-groups" >}}) |
 
 **Values**
 
@@ -826,7 +881,11 @@ The following aspects of EC are not defined in this reference:
 
 - Turn Report structure and format
 - Ship and Colony construction rules (STRC requirements, total mass)
-- Storage vs. operational volume distinction ([§5.6]({{< ref "#56-derivation-rules--notes" >}}))
+- Storage vs. operational volume *values*: whether a stowed unit occupies less
+  volume than the same unit assembled, and by how much, is unverified and the
+  Volume Stowed figures remain provisional ([§5.1]({{< ref "#51-notes" >}})). The
+  stored/assembled *state* model itself is defined in
+  [§4.14]({{< ref "#414-unit-state" >}}) and is not part of this gap.
 - Combat damage-resolution formulas (combat factors, accuracy)
 - Market and trade station transaction mechanics
 - SPY and rebellion mechanics in detail
