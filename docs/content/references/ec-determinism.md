@@ -91,13 +91,13 @@ Tag value 0 is invalid and never used.
 
 ## 5. Instance Key Domains
 
-| Key          | Domain                                                        |
-|--------------|---------------------------------------------------------------|
-| `x`, `y`, `z`| Stellium coordinates, integers −15 to 15                      |
-| `seq`        | System sequence letter, coerced `A` = 1, `B` = 2, …           |
-| `orbit`      | Planet orbit, 1 to 10                                         |
-| `deposit_no` | Deposit number on the planet, sequential 1 to 40; assigned at generation, never reused or renumbered |
-| `player_no`  | Game-assigned player number; never a database row ID          |
+| Key           | Domain                                                                                               |
+|---------------|------------------------------------------------------------------------------------------------------|
+| `x`, `y`, `z` | Stellium coordinates, integers −15 to 15                                                             |
+| `seq`         | System sequence letter, coerced `A` = 1, `B` = 2, …                                                  |
+| `orbit`       | Planet orbit, 1 to 10                                                                                |
+| `deposit_no`  | Deposit number on the planet, sequential 1 to 40; assigned at generation, never reused or renumbered |
+| `player_no`   | Game-assigned player number; never a database row ID                                                 |
 
 ---
 
@@ -113,12 +113,12 @@ Defined on `Seeds` in `internal/prng`.
 
 `Roller` methods, all drawing from the one underlying stream in order:
 
-| Method                | Result                                                     |
-|-----------------------|------------------------------------------------------------|
-| `RollN(n, sides)`     | Sum of `n` uniform dice in `[1, sides]`; result in `[n, n × sides]` |
-| `RollRange(lo, hi)`   | One uniform integer in `[lo, hi]` inclusive; requires `lo < hi` |
-| `Shuffle(n, swap)`    | Pseudo-random reordering of `n` elements                   |
-| `Perm(n)`             | Pseudo-random permutation of `[0, n)`                      |
+| Method              | Result                                                              |
+|---------------------|---------------------------------------------------------------------|
+| `RollN(n, sides)`   | Sum of `n` uniform dice in `[1, sides]`; result in `[n, n × sides]` |
+| `RollRange(lo, hi)` | One uniform integer in `[lo, hi]` inclusive; requires `lo < hi`     |
+| `Shuffle(n, swap)`  | Pseudo-random reordering of `n` elements                            |
+| `Perm(n)`           | Pseudo-random permutation of `[0, n)`                               |
 
 Build a `Roller` once per address and reuse it. Building a fresh `Roller` per
 die restarts the stream and correlates rolls.
@@ -131,11 +131,11 @@ Because every random value is a pure function of `(seed_1, seed_2, address)` and
 no generator state is persisted or advanced (§1), turn processing is
 deterministic under retry, rollback, and replay.
 
-| Operation | Guarantee                                                                    |
-|-----------|------------------------------------------------------------------------------|
+| Operation | Guarantee                                                                                                                                                                                          |
+|-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Retry     | Recomputing a draw at the same address yields the identical stream. A computation that fails partway and is retried cannot consume randomness twice — there is no advancing state to double-spend. |
-| Rollback  | Discarding a turn's results and reprocessing from the prior state reproduces the same outcomes; nothing about the discarded attempt persists into or perturbs the next run. |
-| Replay    | Any draw in a completed turn is recomputable from `(seed_1, seed_2, address)` alone, so a turn can be replayed for diagnosis without the original run's transient state. |
+| Rollback  | Discarding a turn's results and reprocessing from the prior state reproduces the same outcomes; nothing about the discarded attempt persists into or perturbs the next run.                        |
+| Replay    | Any draw in a completed turn is recomputable from `(seed_1, seed_2, address)` alone, so a turn can be replayed for diagnosis without the original run's transient state.                           |
 
 The first processing slice (the initial `NAME` and `TRANSFER` commands) draws no
 randomness. It consumes no hidden ambient source — wall-clock time,
@@ -150,11 +150,11 @@ that could prevent deterministic processing of later turns.
 The following are compatibility surfaces. Once any game exists, changing them
 rewrites that game's outcomes; they must never change.
 
-| Surface        | Frozen elements                                              |
-|----------------|--------------------------------------------------------------|
-| Path encoding  | Element order, `int64`/`uint64` coercions, big-endian layout, length prefix |
-| Tag registry   | Numbering is append-only; never insert, remove, or reorder   |
-| Generator      | SHA-256 digest layout and `math/rand/v2` PCG                 |
+| Surface        | Frozen elements                                                                                    |
+|----------------|----------------------------------------------------------------------------------------------------|
+| Path encoding  | Element order, `int64`/`uint64` coercions, big-endian layout, length prefix                        |
+| Tag registry   | Numbering is append-only; never insert, remove, or reorder                                         |
+| Generator      | SHA-256 digest layout and `math/rand/v2` PCG                                                       |
 | Golden vectors | `internal/prng/testdata/golden.json` pins `(seed1, seed2, path) → output`; tests fail on any drift |
 
 Regenerate golden vectors (`go test ./internal/prng/ -update`) only when
@@ -180,7 +180,7 @@ make a failing test pass.
 The addressing and derivation decision is settled and implemented in
 `internal/prng`. Two follow-on questions were raised; their disposition:
 
-| Question                    | Disposition                                                                    |
-|-----------------------------|--------------------------------------------------------------------------------|
-| Turn-boundary addressing    | **Deferred.** A per-turn derived seed and its `TagTurn` domain tag will not be added until game setup is complete. The stateless design above requires none before then; revisit when turn processing begins. |
-| Ruleset version identifier  | **Resolved.** The ruleset is versioned together with the engine through the `semver.Version` in the repository root (`version.go`); there is no separate PRNG version identifier. The path encoding, tag numbering, and SHA-256/PCG choice remain frozen surfaces (§8). |
+| Question                   | Disposition                                                                                                                                                                                                                                                             |
+|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Turn-boundary addressing   | **Deferred.** A per-turn derived seed and its `TagTurn` domain tag will not be added until game setup is complete. The stateless design above requires none before then; revisit when turn processing begins.                                                           |
+| Ruleset version identifier | **Resolved.** The ruleset is versioned together with the engine through the `semver.Version` in the repository root (`version.go`); there is no separate PRNG version identifier. The path encoding, tag numbering, and SHA-256/PCG choice remain frozen surfaces (§8). |

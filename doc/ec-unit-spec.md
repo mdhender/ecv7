@@ -112,21 +112,21 @@ TL-bearing with the domain `{1..10}`; `FUEL`, `METL`, and `NMTL` are TL-0; `PRO`
 
 ### 5.1 Parsing
 
-| Input     | Result                        | Rule  | Notes                                            |
-|-----------|-------------------------------|-------|--------------------------------------------------|
-| `FACT-3`  | `UnitSpec{FACT, 3}`           | P-1   | TL-bearing production unit; `(FACT, 3)` in domain |
-| `fact-3`  | `UnitSpec{FACT, 3}`           | P-1   | Case-insensitive match; same spec as `FACT-3`     |
-| `FACT`    | rejected                      | P-4   | TL required; `FACT`/`FARM`/`MINE` never bare      |
-| `MINE-5`  | `UnitSpec{MINE, 5}`           | P-1   | TL-bearing production unit                        |
-| `MINE-0`  | rejected                      | P-1   | `0` outside domain `{1..10}` (US-1)               |
-| `PRO`     | `PopulationClass` (`PRO`)     | P-3   | Population is non-spec inventory (US-3)           |
-| `SOL`     | `PopulationClass` (`SOL`)     | P-3   | Population is non-spec inventory (US-3)           |
-| `METL`    | `UnitSpec{METL, 0}`           | P-2   | Bare TL-0 resource resolves to `(METL, 0)`        |
-| `METL-0`  | `UnitSpec{METL, 0}`           | P-1   | Explicit `-0` denotes the same spec as bare `METL` |
-| `FUEL`    | `UnitSpec{FUEL, 0}`           | P-2   | Bare TL-0 resource                                |
-| `TRNS-4`  | `UnitSpec{TRNS, 4}`           | P-1   | TL-bearing transport unit                         |
-| `TRNS-0`  | rejected                      | P-1   | `0` outside domain `{1..10}` (US-1)               |
-| `TRNS-11` | rejected                      | P-1   | `11` outside the `0`–`10` Tech-Level range (TL-1) |
+| Input     | Result                    | Rule | Notes                                              |
+|-----------|---------------------------|------|----------------------------------------------------|
+| `FACT-3`  | `UnitSpec{FACT, 3}`       | P-1  | TL-bearing production unit; `(FACT, 3)` in domain  |
+| `fact-3`  | `UnitSpec{FACT, 3}`       | P-1  | Case-insensitive match; same spec as `FACT-3`      |
+| `FACT`    | rejected                  | P-4  | TL required; `FACT`/`FARM`/`MINE` never bare       |
+| `MINE-5`  | `UnitSpec{MINE, 5}`       | P-1  | TL-bearing production unit                         |
+| `MINE-0`  | rejected                  | P-1  | `0` outside domain `{1..10}` (US-1)                |
+| `PRO`     | `PopulationClass` (`PRO`) | P-3  | Population is non-spec inventory (US-3)            |
+| `SOL`     | `PopulationClass` (`SOL`) | P-3  | Population is non-spec inventory (US-3)            |
+| `METL`    | `UnitSpec{METL, 0}`       | P-2  | Bare TL-0 resource resolves to `(METL, 0)`         |
+| `METL-0`  | `UnitSpec{METL, 0}`       | P-1  | Explicit `-0` denotes the same spec as bare `METL` |
+| `FUEL`    | `UnitSpec{FUEL, 0}`       | P-2  | Bare TL-0 resource                                 |
+| `TRNS-4`  | `UnitSpec{TRNS, 4}`       | P-1  | TL-bearing transport unit                          |
+| `TRNS-0`  | rejected                  | P-1  | `0` outside domain `{1..10}` (US-1)                |
+| `TRNS-11` | rejected                  | P-1  | `11` outside the `0`–`10` Tech-Level range (TL-1)  |
 
 ### 5.2 Formatting
 
