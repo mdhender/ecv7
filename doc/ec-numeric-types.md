@@ -113,8 +113,11 @@ type UnitDefinition struct {
 
 Current stored or assembled quantities belong to inventory state. An entity may
 hold stored and assembled quantities of the same `UnitSpec`, so operational
-state is not a boolean on either `UnitSpec` or the inventory as a whole. Issue
-#26 owns the final inventory shape and stored/assembled transition invariants.
+state is not a boolean on either `UnitSpec` or the inventory as a whole. The final
+inventory shape and stored/assembled transition invariants are fixed by the
+[inventory-state decision](ec-inventory-state.md) (issue #26), which refines the
+placeholder `InventoryUnit` above into separate `Stored` and `Assembled`
+quantities.
 
 Occupied volume is derived from inventory quantity and its `UnitDefinition`; it
 is not part of unit identity. Persistence may store source state needed to
