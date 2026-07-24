@@ -125,7 +125,27 @@ die restarts the stream and correlates rolls.
 
 ---
 
-## 7. Frozen Surfaces
+## 7. Retry, Rollback, and Replay
+
+Because every random value is a pure function of `(seed_1, seed_2, address)` and
+no generator state is persisted or advanced (§1), turn processing is
+deterministic under retry, rollback, and replay.
+
+| Operation | Guarantee                                                                    |
+|-----------|------------------------------------------------------------------------------|
+| Retry     | Recomputing a draw at the same address yields the identical stream. A computation that fails partway and is retried cannot consume randomness twice — there is no advancing state to double-spend. |
+| Rollback  | Discarding a turn's results and reprocessing from the prior state reproduces the same outcomes; nothing about the discarded attempt persists into or perturbs the next run. |
+| Replay    | Any draw in a completed turn is recomputable from `(seed_1, seed_2, address)` alone, so a turn can be replayed for diagnosis without the original run's transient state. |
+
+The first processing slice (the initial `NAME` and `TRANSFER` commands) draws no
+randomness. It consumes no hidden ambient source — wall-clock time,
+package-level `math/rand/v2` functions, map iteration order, or goroutine
+scheduling (§9) — so its game and turn boundaries introduce no concealed state
+that could prevent deterministic processing of later turns.
+
+---
+
+## 8. Frozen Surfaces
 
 The following are compatibility surfaces. Once any game exists, changing them
 rewrites that game's outcomes; they must never change.
@@ -143,7 +163,7 @@ make a failing test pass.
 
 ---
 
-## 8. Prohibitions
+## 9. Prohibitions
 
 - Never seed a path element from a SQLite autoincrement row ID.
 - Never draw from ambient sources: wall-clock time, package-level
@@ -152,3 +172,15 @@ make a failing test pass.
   exclusively.
 - Never renumber deposits or players after generation.
 - Never insert or reorder domain tags; append only.
+
+---
+
+## 10. Deferred Questions
+
+The addressing and derivation decision is settled and implemented in
+`internal/prng`. Two follow-on questions were raised; their disposition:
+
+| Question                    | Disposition                                                                    |
+|-----------------------------|--------------------------------------------------------------------------------|
+| Turn-boundary addressing    | **Deferred.** A per-turn derived seed and its `TagTurn` domain tag will not be added until game setup is complete. The stateless design above requires none before then; revisit when turn processing begins. |
+| Ruleset version identifier  | **Resolved.** The ruleset is versioned together with the engine through the `semver.Version` in the repository root (`version.go`); there is no separate PRNG version identifier. The path encoding, tag numbering, and SHA-256/PCG choice remain frozen surfaces (§8). |

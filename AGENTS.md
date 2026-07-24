@@ -13,9 +13,8 @@ are building command-line tools for operating and playing the game.
 - Before the final commit and push to upstream, bump the version in
   `version.go`:
   - Bump the minor version when adding, updating, or changing a feature.
-  - Bump the patch version when fixing a bug or cleaning up code.
-  - Changes limited to the `doc/` or `docs/` paths do not require a version
-    bump.
+  - Bump the patch version when fixing a bug, cleaning up code, or changing
+    documentation under the `doc/` or `docs/` paths.
 
 ## Repository layout
 
